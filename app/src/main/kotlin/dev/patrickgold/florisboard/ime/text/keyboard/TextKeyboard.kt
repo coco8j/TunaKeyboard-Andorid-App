@@ -16,10 +16,12 @@
 
 package dev.patrickgold.florisboard.ime.text.keyboard
 
+import dev.patrickgold.florisboard.app.florisPreferenceModel
 import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
 import dev.patrickgold.florisboard.ime.popup.PopupMapping
+import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 import kotlin.math.abs
 
 class TextKeyboard(
@@ -50,6 +52,7 @@ class TextKeyboard(
         extendTouchBoundariesDownwards: Boolean,
     ) {
         if (arrangement.isEmpty()) return
+
         val desiredTouchBounds = desiredKey.touchBounds
         val desiredVisibleBounds = desiredKey.visibleBounds
         if (desiredTouchBounds.isEmpty() || desiredVisibleBounds.isEmpty()) return
@@ -58,9 +61,7 @@ class TextKeyboard(
         val rowMarginH = abs(desiredTouchBounds.width - desiredVisibleBounds.width)
         val rowMarginV = (keyboardHeight - desiredTouchBounds.height * rowCount.toFloat()) / (rowCount - 1).coerceAtLeast(1).toFloat()
 
-        // r = 인덱스, row = 배열. 키보드 한 '줄' 단위로 뽑아냄
         for ((r, row) in rows().withIndex()) {
-            // 마진값 = (rowMarginV, rowMarginH)
             val posY = (desiredTouchBounds.height + rowMarginV) * r
             val availableWidth = (keyboardWidth - rowMarginH) / desiredTouchBounds.width
 
@@ -68,38 +69,24 @@ class TextKeyboard(
             var shrinkSum = 0.0f
             var growSum = 0.0f
 
-            // 개별 단일 '키' 단위로 뽑아냄.
             for (key in row) {
-                // 여기서 키에 대해 셋팅한 값을 키 하나 하나 돌아가면서 값을 부여 하는 듯 함
                 requestedWidth += key.flayWidthFactor
                 shrinkSum += key.flayShrink
-                growSum += key.flayGrow //flayGrow 는 모드가 NUMERIC_ADVANCED 일 경우, 스페이스바일 경우 1.0f를 부여 받음. 나머진 0.0f.
-                // 이유 : 여유공간이 생기면 커질 수 있게끔 조절했기 때문 1.0f
+                growSum += key.flayGrow
             }
 
-            // 키 너비의 총 합이 가능한 범위 내에 있을 때
+            // TODO: 머신러닝을 통한 셋팅 로직이 들어온 이후 else문 삭제
             if (requestedWidth <= availableWidth) {
                 // Requested with is smaller or equal to the available with, so we can grow
                 val additionalWidth = availableWidth - requestedWidth
                 var posX = rowMarginH / 2.0f
 
-                // k = index, key = array
                 for ((k, key) in row.withIndex()) {
-                    // '키' 너비 최적화 과정
                     val keyWidth = desiredTouchBounds.width * when (growSum) {
-
-                        // 늘어날 여유 공간이 없는 경우,
                         0.0f -> when (k) {
-
-                            // 0번째 key 와 size-1 번째 (= 마지막) key 일 경우, 남은 마진의 절반을 할당 받음
                             0, row.size - 1 -> key.flayWidthFactor + additionalWidth / 2.0f
-
-                            // 나머지 키는 배율을 그대로 가져감
                             else -> key.flayWidthFactor
                         }
-
-                        // 늘어날 여유 공간이 있는 경우,
-                        // 자신의 flayGrow 값에 비례하여 추가 공간을 나누어 가짐
                         else -> key.flayWidthFactor + additionalWidth * (key.flayGrow / growSum)
                     }
 
@@ -108,6 +95,13 @@ class TextKeyboard(
                         top = posY
                         right = posX + keyWidth
                         bottom = posY + desiredTouchBounds.height
+                    }
+
+                    val prefs by florisPreferenceModel()
+                    val defaultKeyTilesInfo = prefs.keyboard.keyTilesInfo.default
+                    val currentKeyTilesInfo = prefs.keyboard.keyTilesInfo.get()
+                    if (currentKeyTilesInfo == defaultKeyTilesInfo) {
+                        saveKeyTilesToPreferences(r, k, key.touchBounds)
                     }
 
                     key.visibleBounds.apply {

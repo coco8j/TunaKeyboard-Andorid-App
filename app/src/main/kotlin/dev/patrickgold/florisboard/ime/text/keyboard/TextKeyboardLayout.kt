@@ -220,6 +220,7 @@ fun TextKeyboardLayout(
                 }
             },
     ) {
+        // TODO: keyMarginH 와 keyMarginV 는 각 키별로 참조를 가져와야 하는 값, TextKeyboard 에서 설정함. (확인하기)
         val keyMarginH by prefs.keyboard.keySpacingHorizontal.observeAsTransformingState { it.dp.toPx() }
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
         val desiredKey = remember { TextKey(data = TextKeyData.UNSPECIFIED) }
@@ -243,6 +244,7 @@ fun TextKeyboardLayout(
                 }
             }
         }
+        // TODO: deflatedBy 를 위한 마진값을 고정해야함. 참고) 5.0f & 2.0f 이 디폴트값
         desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
         keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard)
 
