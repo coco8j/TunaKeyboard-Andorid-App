@@ -21,6 +21,7 @@ import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
 import dev.patrickgold.florisboard.ime.popup.PopupMapping
+import dev.patrickgold.florisboard.lib.util.PreferenceUtils.loadKeyTilesFromPreferences
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 import kotlin.math.abs
 
@@ -90,18 +91,28 @@ class TextKeyboard(
                         else -> key.flayWidthFactor + additionalWidth * (key.flayGrow / growSum)
                     }
 
+                    val prefs by florisPreferenceModel()
+                    val defaultKeyTilesInfo = prefs.keyboard.keyTilesInfo.default
+                    val currentKeyTilesInfo = prefs.keyboard.keyTilesInfo.get()
+                    val touchBoundsPreference = loadKeyTilesFromPreferences()?.get(r, k)?.touchBounds
+
+                    if ((currentKeyTilesInfo == defaultKeyTilesInfo) && (touchBoundsPreference == null)) {
                     key.touchBounds.apply {
                         left = posX
                         top = posY
                         right = posX + keyWidth
                         bottom = posY + desiredTouchBounds.height
                     }
-
-                    val prefs by florisPreferenceModel()
-                    val defaultKeyTilesInfo = prefs.keyboard.keyTilesInfo.default
-                    val currentKeyTilesInfo = prefs.keyboard.keyTilesInfo.get()
-                    if (currentKeyTilesInfo == defaultKeyTilesInfo) {
                         saveKeyTilesToPreferences(r, k, key.touchBounds)
+                    } else {
+                        key.touchBounds.apply {
+                            if (touchBoundsPreference != null) {
+                                left = touchBoundsPreference.left
+                                top = touchBoundsPreference.top
+                                right = touchBoundsPreference.right
+                                bottom = touchBoundsPreference.bottom
+                            }
+                        }
                     }
 
                     key.visibleBounds.apply {
