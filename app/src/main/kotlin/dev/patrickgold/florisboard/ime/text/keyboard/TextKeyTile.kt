@@ -24,7 +24,19 @@ class KeyTilesData (
         }
     }
 
-    fun set(rowIndex: Int, keyIndex: Int, value: FlorisRect) {
+    fun setTouchBounds(rowIndex: Int, keyIndex: Int, value: FlorisRect) {
         keyTiles[rowIndex][keyIndex].touchBounds = value
     }
+}
+
+fun createDefaultKeyTilesData(rows: Int, keysPerRow: Int): KeyTilesData {
+    val keyTiles = Array(rows) { rowIndex ->
+        Array(keysPerRow) { keyIndex ->
+            KeyTileData(
+                touchBounds = FlorisRect.new(),
+                frequency = 0
+            )
+        }
+    }
+    return KeyTilesData(keyTiles)
 }
