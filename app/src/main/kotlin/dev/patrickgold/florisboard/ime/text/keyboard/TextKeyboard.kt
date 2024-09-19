@@ -21,7 +21,6 @@ import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
 import dev.patrickgold.florisboard.ime.popup.PopupMapping
-import dev.patrickgold.florisboard.lib.util.PreferenceUtils.loadKeyTilesFromPreferences
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 import kotlin.math.abs
 
@@ -37,6 +36,7 @@ class TextKeyboard(
     val keyCount: Int
         get() = arrangement.sumOf { it.size }
 
+    // 좌표에 해당하는 키 값을 가져와주는 메서드 (getter)
     override fun getKeyForPos(pointerX: Float, pointerY: Float): TextKey? {
         for (key in keys()) {
             if (key.touchBounds.contains(pointerX, pointerY)) {
@@ -47,6 +47,7 @@ class TextKeyboard(
     }
 
     override fun layout(
+        //Float = 실수 타입
         keyboardWidth: Float,
         keyboardHeight: Float,
         desiredKey: Key,
@@ -61,6 +62,8 @@ class TextKeyboard(
 
         val rowMarginH = abs(desiredTouchBounds.width - desiredVisibleBounds.width)
         val rowMarginV = (keyboardHeight - desiredTouchBounds.height * rowCount.toFloat()) / (rowCount - 1).coerceAtLeast(1).toFloat()
+        val prefs by florisPreferenceModel()
+        val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
 
         for ((r, row) in rows().withIndex()) {
             val posY = (desiredTouchBounds.height + rowMarginV) * r
@@ -76,7 +79,7 @@ class TextKeyboard(
                 growSum += key.flayGrow
             }
 
-            // TODO: 머신러닝을 통한 셋팅 로직이 들어온 이후 else문 삭제
+            // 일반적으로 문자열 키보드에서 8키 이하 시
             if (requestedWidth <= availableWidth) {
                 // Requested with is smaller or equal to the available with, so we can grow
                 val additionalWidth = availableWidth - requestedWidth
@@ -84,6 +87,7 @@ class TextKeyboard(
 
                 for ((k, key) in row.withIndex()) {
                     val keyWidth = desiredTouchBounds.width * when (growSum) {
+
                         0.0f -> when (k) {
                             0, row.size - 1 -> key.flayWidthFactor + additionalWidth / 2.0f
                             else -> key.flayWidthFactor
@@ -91,28 +95,15 @@ class TextKeyboard(
                         else -> key.flayWidthFactor + additionalWidth * (key.flayGrow / growSum)
                     }
 
-                    val prefs by florisPreferenceModel()
-                    val defaultKeyTilesInfo = prefs.keyboard.keyTilesInfo.default
-                    val currentKeyTilesInfo = prefs.keyboard.keyTilesInfo.get()
-                    val touchBoundsPreference = loadKeyTilesFromPreferences()?.get(r, k)?.touchBounds
-
-                    if ((currentKeyTilesInfo == defaultKeyTilesInfo) && (touchBoundsPreference == null)) {
                     key.touchBounds.apply {
                         left = posX
                         top = posY
                         right = posX + keyWidth
                         bottom = posY + desiredTouchBounds.height
                     }
+
+                    if (!hasKeyTilesAllSettled) {
                         saveKeyTilesToPreferences(r, k, key.touchBounds)
-                    } else {
-                        key.touchBounds.apply {
-                            if (touchBoundsPreference != null) {
-                                left = touchBoundsPreference.left
-                                top = touchBoundsPreference.top
-                                right = touchBoundsPreference.right
-                                bottom = touchBoundsPreference.bottom
-                            }
-                        }
                     }
 
                     key.visibleBounds.apply {
@@ -143,6 +134,7 @@ class TextKeyboard(
                     }
                 }
             } else {
+                // 일반적으로 문자열 키보드에서 8키 초과시
                 // Requested size too big, must shrink.
                 val clippingWidth = requestedWidth - availableWidth
                 var posX = rowMarginH / 2.0f
@@ -164,6 +156,11 @@ class TextKeyboard(
                         right = key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right)
                         bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
                     }
+
+                    if (!hasKeyTilesAllSettled) {
+                        saveKeyTilesToPreferences(r, k, key.touchBounds)
+                    }
+
                     posX += keyWidth
                     // After-adjust touch bounds for the row margin
                     key.touchBounds.apply {
@@ -179,8 +176,10 @@ class TextKeyboard(
                 }
             }
         }
+        if (!hasKeyTilesAllSettled) {
+            prefs.keyboard.hasKeyTilesAllSettled.set(true)
+        }
     }
-
     override fun keys(): Iterator<TextKey> {
         return TextKeyboardIterator(arrangement)
     }
