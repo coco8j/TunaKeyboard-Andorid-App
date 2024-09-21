@@ -2,41 +2,82 @@ package dev.patrickgold.florisboard.ime.text.keyboard
 
 import dev.patrickgold.florisboard.lib.FlorisRect
 
-// visibleBounds 는 TextKeyboardLayout 에 따라 후처리하게 되어있음
-// TODO: 최소 값 방어 코드 있어야 함.
 class KeyTileData (
-    var touchBounds : FlorisRect,
-    var frequency: Int,
+    var touchBounds: FlorisRect,
+    var frequency: Int
 )
 
-class KeyTilesData (
+class KeyTilesData(
     private val keyTiles: Array<Array<KeyTileData>>
 ) {
     override fun toString(): String {
         return "(${keyTiles.contentDeepToString()})"
     }
 
+    fun rows(): Iterator<Array<KeyTileData>> {
+        return keyTiles.iterator()
+    }
+
+    fun setTouchBounds(rowIndex: Int, keyIndex: Int, value: FlorisRect) {
+        if (rowIndex in keyTiles.indices && keyIndex in keyTiles[rowIndex].indices) {
+            keyTiles[rowIndex][keyIndex].touchBounds = value
+        }
+    }
+
     operator fun get(rowIndex: Int, keyIndex: Int): KeyTileData? {
         return if (rowIndex in keyTiles.indices && keyIndex in keyTiles[rowIndex].indices) {
-            keyTiles[keyIndex][rowIndex]
+            keyTiles[rowIndex][keyIndex]
         } else {
             null
         }
     }
-
-    fun setTouchBounds(rowIndex: Int, keyIndex: Int, value: FlorisRect) {
-        keyTiles[rowIndex][keyIndex].touchBounds = value
-    }
 }
 
-fun createDefaultKeyTilesData(rows: Int, keysPerRow: Int): KeyTilesData {
-    val keyTiles = Array(rows) { rowIndex ->
-        Array(keysPerRow) { keyIndex ->
-            KeyTileData(
-                touchBounds = FlorisRect.new(),
-                frequency = 0
-            )
-        }
-    }
+fun createDefaultKeyTilesData(): KeyTilesData {
+    val keyTiles = arrayOf(
+        arrayOf( // 첫 번째 줄
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0)
+        ),
+        arrayOf( // 두 번째 줄
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0)
+        ),
+        arrayOf( // 세 번째 줄
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0)
+        ),
+        arrayOf( // 네 번째 줄
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0),
+            KeyTileData(touchBounds = FlorisRect.new(), frequency = 0)
+        )
+    )
+
     return KeyTilesData(keyTiles)
 }

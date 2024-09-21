@@ -132,6 +132,15 @@ fun TextKeyboardLayout(
     }
     val touchEventChannel = remember { Channel<MotionEvent>(64) }
 
+    val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
+    val keyTilesInfo by prefs.keyboard.keyTilesInfo.observeAsState()
+
+    LaunchedEffect(keyTilesInfo) {
+        if (hasKeyTilesAllSettled) {
+            // Perform an action when the key tiles have all settled
+        }
+    }
+
     fun resetAllKeys() {
         try {
             val event = MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
@@ -220,7 +229,6 @@ fun TextKeyboardLayout(
                 }
             },
     ) {
-        // TODO: keyMarginH 와 keyMarginV 는 각 키별로 참조를 가져와야 하는 값, TextKeyboard 에서 설정함. (확인하기)
         val keyMarginH by prefs.keyboard.keySpacingHorizontal.observeAsTransformingState { it.dp.toPx() }
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
 
@@ -247,9 +255,7 @@ fun TextKeyboardLayout(
                 }
             }
         }
-        // TODO: deflatedBy 를 위한 마진값을 고정해야함. 참고) 5.0f & 2.0f 이 디폴트값
         desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-        // textKeyboard 의 layout 메서드 사용하는 곳 = 최종적으로 보이는 값을 설정하는 곳
         keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
@@ -328,6 +334,7 @@ fun TextKeyboardLayout(
             controller.onTouchEventInternal(event)
             event.recycle()
         }
+        controller.fixKeyTilesData()
     }
 }
 
@@ -619,6 +626,11 @@ private class TextKeyboardLayoutController(
 
         val key = keyboard.getKeyForPos(event.getX(pointer.index), event.getY(pointer.index))
         if (key != null && key.isEnabled) {
+            if(keyboard.mode == KeyboardMode.CHARACTERS && key.label != null) {
+                prefs.touchedKey.keyLabel.set(key.label as String)
+                prefs.touchedKey.posX.set(event.getX(pointer.index))
+                prefs.touchedKey.posY.set(event.getY(pointer.index))
+            }
             key.computedDataOnDown = key.computedData
             pointer.pressedKeyInfo = inputEventDispatcher.sendDown(
                 data = key.computedData,
@@ -1040,6 +1052,14 @@ private class TextKeyboardLayoutController(
 
         override fun toString(): String {
             return "${TouchPointer::class.simpleName} { id=$id, index=$index, initialKey=$initialKey, activeKey=$activeKey }"
+        }
+    }
+
+     fun fixKeyTilesData():Unit {
+         val prefs by florisPreferenceModel()
+        val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
+        if (!hasKeyTilesAllSettled) {
+            prefs.keyboard.hasKeyTilesAllSettled.set(true)
         }
     }
 }

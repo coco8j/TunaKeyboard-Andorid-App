@@ -21,6 +21,7 @@ import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
 import dev.patrickgold.florisboard.ime.popup.PopupMapping
+import dev.patrickgold.florisboard.lib.util.PreferenceUtils.loadKeyTilesFromPreferences
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 import kotlin.math.abs
 
@@ -36,7 +37,6 @@ class TextKeyboard(
     val keyCount: Int
         get() = arrangement.sumOf { it.size }
 
-    // 좌표에 해당하는 키 값을 가져와주는 메서드 (getter)
     override fun getKeyForPos(pointerX: Float, pointerY: Float): TextKey? {
         for (key in keys()) {
             if (key.touchBounds.contains(pointerX, pointerY)) {
@@ -47,14 +47,12 @@ class TextKeyboard(
     }
 
     override fun layout(
-        //Float = 실수 타입
         keyboardWidth: Float,
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
     ) {
         if (arrangement.isEmpty()) return
-
         val desiredTouchBounds = desiredKey.touchBounds
         val desiredVisibleBounds = desiredKey.visibleBounds
         if (desiredTouchBounds.isEmpty() || desiredVisibleBounds.isEmpty()) return
@@ -62,8 +60,10 @@ class TextKeyboard(
 
         val rowMarginH = abs(desiredTouchBounds.width - desiredVisibleBounds.width)
         val rowMarginV = (keyboardHeight - desiredTouchBounds.height * rowCount.toFloat()) / (rowCount - 1).coerceAtLeast(1).toFloat()
+
         val prefs by florisPreferenceModel()
         val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
+        val keyTilesPreferences = loadKeyTilesFromPreferences()
 
         for ((r, row) in rows().withIndex()) {
             val posY = (desiredTouchBounds.height + rowMarginV) * r
@@ -79,7 +79,6 @@ class TextKeyboard(
                 growSum += key.flayGrow
             }
 
-            // 일반적으로 문자열 키보드에서 8키 이하 시
             if (requestedWidth <= availableWidth) {
                 // Requested with is smaller or equal to the available with, so we can grow
                 val additionalWidth = availableWidth - requestedWidth
@@ -95,46 +94,70 @@ class TextKeyboard(
                         else -> key.flayWidthFactor + additionalWidth * (key.flayGrow / growSum)
                     }
 
-                    key.touchBounds.apply {
-                        left = posX
-                        top = posY
-                        right = posX + keyWidth
-                        bottom = posY + desiredTouchBounds.height
-                    }
+                    val keyTile = keyTilesPreferences?.get(r, k)
+                    if (!hasKeyTilesAllSettled || keyTile == null) {
+                        key.touchBounds.apply {
+                            left = posX
+                            top = posY
+                            right = posX + keyWidth
+                            bottom = posY + desiredTouchBounds.height
+                        }
+                        key.visibleBounds.apply {
+                            left =
+                                key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left) + when {
+                                    growSum == 0.0f && k == 0 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
+                                    else -> 0.0f
+                                }
+                            top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
+                            right =
+                                key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right) - when {
+                                    growSum == 0.0f && k == row.size - 1 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
+                                    else -> 0.0f
+                                }
+                            bottom =
+                                key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
+                        }
 
-                    if (!hasKeyTilesAllSettled) {
+                        posX += keyWidth
+                        // After-adjust touch bounds for the row margin
+                        key.touchBounds.apply {
+                            if (k == 0) {
+                                left = 0.0f
+                            } else if (k == row.size - 1) {
+                                right = keyboardWidth
+                            }
+                            if (extendTouchBoundariesDownwards && r + 1 == arrangement.size) {
+                                    bottom += height
+                            }
+                        }
                         saveKeyTilesToPreferences(r, k, key.touchBounds)
-                    }
-
-                    key.visibleBounds.apply {
-                        left = key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left) + when {
-                            growSum == 0.0f && k == 0 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
-                            else -> 0.0f
-                        }
-                        top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
-                        right = key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right) - when {
-                            growSum == 0.0f && k == row.size - 1 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
-                            else -> 0.0f
-                        }
-                        bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
-                    }
-
-                    posX += keyWidth
-                    // After-adjust touch bounds for the row margin
-                    key.touchBounds.apply {
-                        if (k == 0) {
-                            left = 0.0f
-                        } else if (k == row.size - 1) {
-                            right = keyboardWidth
+                    } else {
+                        val keyTileTouchBounds = keyTile.touchBounds
+                        key.touchBounds.apply {
+                            left = keyTileTouchBounds.left
+                            top = keyTileTouchBounds.top
+                            right = keyTileTouchBounds.right
+                            bottom = keyTileTouchBounds.bottom
                         }
 
-                        if (extendTouchBoundariesDownwards && r + 1 == arrangement.size) {
-                            bottom += height
+                        key.visibleBounds.apply {
+                            left =
+                                key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left) + when {
+                                    growSum == 0.0f && k == 0 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
+                                    else -> 0.0f
+                                }
+                            top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
+                            right =
+                                key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right) - when {
+                                    growSum == 0.0f && k == row.size - 1 -> ((additionalWidth / 2.0f) * desiredTouchBounds.width)
+                                    else -> 0.0f
+                                }
+                            bottom =
+                                key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
                         }
                     }
                 }
             } else {
-                // 일반적으로 문자열 키보드에서 8키 초과시
                 // Requested size too big, must shrink.
                 val clippingWidth = requestedWidth - availableWidth
                 var posX = rowMarginH / 2.0f
@@ -144,42 +167,55 @@ class TextKeyboard(
                     } else {
                         key.flayWidthFactor - clippingWidth * (key.flayShrink / shrinkSum)
                     }
-                    key.touchBounds.apply {
-                        left = posX
-                        top = posY
-                        right = posX + keyWidth
-                        bottom = posY + desiredTouchBounds.height
-                    }
-                    key.visibleBounds.apply {
-                        left = key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left)
-                        top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
-                        right = key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right)
-                        bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
-                    }
 
-                    if (!hasKeyTilesAllSettled) {
-                        saveKeyTilesToPreferences(r, k, key.touchBounds)
-                    }
-
-                    posX += keyWidth
-                    // After-adjust touch bounds for the row margin
-                    key.touchBounds.apply {
-                        if (k == 0) {
-                            left = 0.0f
-                        } else if (k == row.size - 1) {
-                            right = keyboardWidth
+                    val keyTile = keyTilesPreferences?.get(r, k)
+                    if (!hasKeyTilesAllSettled || keyTile == null) {
+                        key.touchBounds.apply {
+                            left = posX
+                            top = posY
+                            right = posX + keyWidth
+                            bottom = posY + desiredTouchBounds.height
                         }
-                        if (extendTouchBoundariesDownwards && r + 1 == arrangement.size) {
-                            bottom += height
+
+                        key.visibleBounds.apply {
+                            left = key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left)
+                            top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
+                            right = key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right)
+                            bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
+                        }
+                        posX += keyWidth
+                        // After-adjust touch bounds for the row margin
+                        key.touchBounds.apply {
+                            if (k == 0) {
+                                left = 0.0f
+                            } else if (k == row.size - 1) {
+                                right = keyboardWidth
+                            }
+                            if (extendTouchBoundariesDownwards && r + 1 == arrangement.size) {
+                                bottom += height
+                            }
+                        }
+                        saveKeyTilesToPreferences(r, k, key.touchBounds)
+                    } else {
+                        val keyTileTouchBounds = keyTile.touchBounds
+                        key.touchBounds.apply {
+                            left = keyTileTouchBounds.left
+                            top = keyTileTouchBounds.top
+                            right = keyTileTouchBounds.right
+                            bottom = keyTileTouchBounds.bottom
+                        }
+                        key.visibleBounds.apply {
+                            left = key.touchBounds.left + abs(desiredTouchBounds.left - desiredVisibleBounds.left)
+                            top = key.touchBounds.top + abs(desiredTouchBounds.top - desiredVisibleBounds.top)
+                            right = key.touchBounds.right - abs(desiredTouchBounds.right - desiredVisibleBounds.right)
+                            bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
                         }
                     }
                 }
             }
         }
-        if (!hasKeyTilesAllSettled) {
-            prefs.keyboard.hasKeyTilesAllSettled.set(true)
-        }
     }
+
     override fun keys(): Iterator<TextKey> {
         return TextKeyboardIterator(arrangement)
     }

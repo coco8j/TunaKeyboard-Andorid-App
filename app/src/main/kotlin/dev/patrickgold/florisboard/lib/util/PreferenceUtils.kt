@@ -11,15 +11,15 @@ object PreferenceUtils {
     private val prefs by florisPreferenceModel()
 
     fun saveKeyTilesToPreferences(rowIndex: Int, keyIndex: Int, value: FlorisRect): Unit {
-        var currentKeyTilesInfo = loadKeyTilesFromPreferences()
+        var keyTilesData = loadKeyTilesFromPreferences()
 
-        if (currentKeyTilesInfo == null) {
-            currentKeyTilesInfo = createDefaultKeyTilesData(5, 10)
+        if (keyTilesData == null) {
+            keyTilesData = createDefaultKeyTilesData()
         }
 
-        currentKeyTilesInfo.setTouchBounds(keyIndex, rowIndex, value)
+        keyTilesData.setTouchBounds(rowIndex, keyIndex, value)
+        val jsonDataString = gson.toJson(keyTilesData)
 
-        val jsonDataString = gson.toJson(currentKeyTilesInfo)
         prefs.keyboard.keyTilesInfo.set(jsonDataString)
     }
 
@@ -31,6 +31,21 @@ object PreferenceUtils {
             gson.fromJson(jsonDataString, KeyTilesData::class.java)
         }
     }
+
+    fun getIndexFromPos(x: Float, y: Float): Pair<Int, Int> {
+        val keyTilesData = loadKeyTilesFromPreferences()
+        if (keyTilesData != null) {
+            for ((r, row) in keyTilesData.rows().withIndex()) {
+                for ((k, key) in row.withIndex()) {
+                    if (key.touchBounds.contains(x, y)) {
+                        return Pair(r, k)
+                    }
+                }
+            }
+        }
+       return Pair(-1, -1)
+    }
+
 }
 
 

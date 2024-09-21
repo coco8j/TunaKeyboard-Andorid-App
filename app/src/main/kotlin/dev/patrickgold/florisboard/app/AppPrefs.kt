@@ -479,8 +479,8 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             key = "keyboard__incognito_indicator",
             default = IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD,
         )
-        val hasCoordinatesCustomized = boolean(
-            key = "keyboard__has_coordinates_customized",
+        val hasKeyTilesAllSettled = boolean(
+            key = "keyboard__has_key_tiles_all_settled",
             default = false,
         )
         val keyTilesInfo = string(
@@ -519,6 +519,22 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             }
             return fontSizeMultiplier
         }
+    }
+
+    val touchedKey = TouchedKey()
+    inner class TouchedKey {
+        val keyLabel = string(
+            key = "touched_key__key_label",
+            default = "",
+        )
+        val posX = float(
+            key = "touched_key__pos_x",
+            default = 0f,
+        )
+        val posY = float(
+            key = "touched_key__pos_y",
+            default = 0f,
+        )
     }
 
     val localization = Localization()
