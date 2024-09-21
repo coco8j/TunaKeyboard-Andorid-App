@@ -83,6 +83,16 @@ interface AbstractKeyData {
  * @property groupId The group which this key belongs to.
  * @property popup The popups for ths key. Can also dynamically be provided via popup extensions.
  */
+/**
+ * 문자를 포함하거나, 이모지, 특수 기능 등을 가질 수 있는 기본 키를 설명하는 인터페이스로, 가능한 한 추상적으로 표현됩니다.
+ *
+ * @property type 키의 타입입니다.
+ * @property code 이 키의 유니코드 코드 포인트 또는 [KeyCode]의 특수 코드입니다.
+ * @property label 키의 레이블입니다. 이는 항상 [code]를 나타내는 대표적인 문자열이어야 합니다.
+ * @property groupId 이 키가 속한 그룹입니다.
+ * @property popup 이 키의 팝업입니다. 팝업 확장을 통해 동적으로 제공될 수도 있습니다.
+ */
+
 interface KeyData : AbstractKeyData {
     val type: KeyType
     val code: Int
@@ -132,8 +142,14 @@ interface KeyData : AbstractKeyData {
  * Allows to select an [AbstractKeyData] based on the current caps state. Note that this type of selector only really
  * makes sense in a text context, though technically speaking it can be used anywhere, so this implementation allows
  * for any [AbstractKeyData] to be used here. The JSON class identifier for this selector is `case_selector`.
+ * 현재 대문자 상태에 따라 [AbstractKeyData]를 선택할 수 있게 해줍니다.
+ * 이 선택자 타입은 텍스트 컨텍스트에서만 유효하지만, 기술적으로는 어디에서나 사용할 수 있으므로,
+ * 이 구현에서는 어떤 [AbstractKeyData]도 여기에서 사용할 수 있도록 허용합니다.
+ * 이 선택자의 JSON 클래스 식별자는 `case_selector`입니다.
  *
  * Example usage in a layout JSON file:
+ * 레이아웃 JSON 파일에서의 사용 예시:
+ *
  * ```
  * { "$": "case_selector",
  *   "lower": { "code":   59, "label": ";" },

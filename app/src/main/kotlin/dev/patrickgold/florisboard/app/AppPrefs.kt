@@ -58,7 +58,6 @@ import dev.patrickgold.jetpref.datastore.model.PreferenceType
 import dev.patrickgold.jetpref.datastore.model.observeAsState
 
 fun florisPreferenceModel() = JetPref.getOrCreatePreferenceModel(AppPrefs::class, ::AppPrefs)
-
 class AppPrefs : PreferenceModel("florisboard-app-prefs") {
     val advanced = Advanced()
     inner class Advanced {
@@ -480,6 +479,14 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             key = "keyboard__incognito_indicator",
             default = IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD,
         )
+        val hasKeyTilesAllSettled = boolean(
+            key = "keyboard__has_key_tiles_all_settled",
+            default = false,
+        )
+        val keyTilesInfo = string(
+            key = "keyboard__key_tiles_info",
+            default = "",
+        )
 
         fun keyHintConfiguration(): KeyHintConfiguration {
             return KeyHintConfiguration(
@@ -512,6 +519,22 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             }
             return fontSizeMultiplier
         }
+    }
+
+    val touchedKey = TouchedKey()
+    inner class TouchedKey {
+        val keyLabel = string(
+            key = "touched_key__key_label",
+            default = "",
+        )
+        val posX = float(
+            key = "touched_key__pos_x",
+            default = 0f,
+        )
+        val posY = float(
+            key = "touched_key__pos_y",
+            default = 0f,
+        )
     }
 
     val localization = Localization()

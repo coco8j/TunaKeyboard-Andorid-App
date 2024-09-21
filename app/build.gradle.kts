@@ -217,6 +217,8 @@ dependencies {
 
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
+
+    implementation("com.google.code.gson:gson:2.9.0")
 }
 
 fun getGitCommitHash(short: Boolean = false): String {

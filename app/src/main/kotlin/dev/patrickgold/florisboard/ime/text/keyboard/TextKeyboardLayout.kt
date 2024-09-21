@@ -132,6 +132,15 @@ fun TextKeyboardLayout(
     }
     val touchEventChannel = remember { Channel<MotionEvent>(64) }
 
+    val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
+    val keyTilesInfo by prefs.keyboard.keyTilesInfo.observeAsState()
+
+    LaunchedEffect(keyTilesInfo) {
+        if (hasKeyTilesAllSettled) {
+            // Perform an action when the key tiles have all settled
+        }
+    }
+
     fun resetAllKeys() {
         try {
             val event = MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
@@ -222,9 +231,12 @@ fun TextKeyboardLayout(
     ) {
         val keyMarginH by prefs.keyboard.keySpacingHorizontal.observeAsTransformingState { it.dp.toPx() }
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
+
         val desiredKey = remember { TextKey(data = TextKeyData.UNSPECIFIED) }
+
         val keyboardWidth = constraints.maxWidth.toFloat()
         val keyboardHeight = constraints.maxHeight.toFloat()
+
         desiredKey.touchBounds.apply {
             if (isSmartbarKeyboard) {
                 width = keyboardWidth / 8f
@@ -322,6 +334,7 @@ fun TextKeyboardLayout(
             controller.onTouchEventInternal(event)
             event.recycle()
         }
+        controller.fixKeyTilesData()
     }
 }
 
@@ -613,6 +626,11 @@ private class TextKeyboardLayoutController(
 
         val key = keyboard.getKeyForPos(event.getX(pointer.index), event.getY(pointer.index))
         if (key != null && key.isEnabled) {
+            if(keyboard.mode == KeyboardMode.CHARACTERS && key.label != null) {
+                prefs.touchedKey.keyLabel.set(key.label as String)
+                prefs.touchedKey.posX.set(event.getX(pointer.index))
+                prefs.touchedKey.posY.set(event.getY(pointer.index))
+            }
             key.computedDataOnDown = key.computedData
             pointer.pressedKeyInfo = inputEventDispatcher.sendDown(
                 data = key.computedData,
@@ -1034,6 +1052,14 @@ private class TextKeyboardLayoutController(
 
         override fun toString(): String {
             return "${TouchPointer::class.simpleName} { id=$id, index=$index, initialKey=$initialKey, activeKey=$activeKey }"
+        }
+    }
+
+     fun fixKeyTilesData():Unit {
+         val prefs by florisPreferenceModel()
+        val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
+        if (!hasKeyTilesAllSettled) {
+            prefs.keyboard.hasKeyTilesAllSettled.set(true)
         }
     }
 }

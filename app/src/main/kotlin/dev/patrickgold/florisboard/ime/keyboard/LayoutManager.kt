@@ -349,7 +349,6 @@ class LayoutManager(context: Context) {
                 // Default values are already provided
             }
         }
-
         return@async mergeLayouts(keyboardMode, subtype, main, modifier, extension)
     }
 

@@ -68,6 +68,7 @@ import dev.patrickgold.florisboard.app.settings.theme.ThemeManagerScreen
 import dev.patrickgold.florisboard.app.settings.theme.ThemeManagerScreenAction
 import dev.patrickgold.florisboard.app.settings.theme.ThemeScreen
 import dev.patrickgold.florisboard.app.settings.typing.TypingScreen
+import dev.patrickgold.florisboard.app.settings.tunaSettings.TuneKeyboardLayout
 import dev.patrickgold.florisboard.app.setup.SetupScreen
 import org.florisboard.lib.kotlin.curlyFormat
 
@@ -80,6 +81,7 @@ object Routes {
     object Settings {
         const val Home = "settings"
 
+        const val TunaSettings = "settings/tunaSettings"
         const val Localization = "settings/localization"
         const val SelectLocale = "settings/localization/select-locale"
         const val LanguagePackManager = "settings/localization/language-pack-manage/{action}"
@@ -196,6 +198,7 @@ object Routes {
 
             composableWithDeepLink(Settings.Home) { HomeScreen() }
 
+            composableWithDeepLink(Settings.TunaSettings) { TuneKeyboardLayout() }
             composableWithDeepLink(Settings.Localization) { LocalizationScreen() }
             composableWithDeepLink(Settings.SelectLocale) { SelectLocaleScreen() }
             composableWithDeepLink(Settings.LanguagePackManager) { navBackStack ->
