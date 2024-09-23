@@ -84,9 +84,10 @@ fun FittingScreen() = FlorisScreen {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
+                    modifier = Modifier.padding(50.dp),
                     text = "Try Type",
                     fontFamily = TrainOne,
-                    fontSize = 24.sp
+                    fontSize = 30.sp
                 )
                 StringScreen(keyboard = keyboard)
             }

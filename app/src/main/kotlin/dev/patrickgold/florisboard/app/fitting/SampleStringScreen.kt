@@ -1,5 +1,6 @@
 package dev.patrickgold.florisboard.app.fitting
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,14 +8,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
@@ -136,10 +141,24 @@ fun StringScreen(keyboard: TextKeyboard)  {
             )
         } else {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                modifier = Modifier.fillMaxWidth().padding( horizontal = 50.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Row {
+                Text(
+                    modifier = Modifier.fillMaxWidth().padding(10.dp),
+                    text = "Type the characters below",
+                    color = Color.Red,
+                    fontFamily = WorkSans,
+                    fontSize = 15.sp,
+                )
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(10.dp)
+                        .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
+                ) {
+                Row (
+                    modifier = Modifier.fillMaxWidth().padding(10.dp),
+                ) {
                     for (character in strings) {
                         Text(
                             text = character.character,
@@ -149,17 +168,19 @@ fun StringScreen(keyboard: TextKeyboard)  {
                         )
                     }
                 }
+                }
                 if (targetString?.character == "TEST_END") {
                     prefs.deepLearning.hasPreset.set(true)
 
                     CustomElevatedButton(
                         onClick = {
+                            // TODO: 머신러닝에 데이터 전달하여 학습시키기,
                             navController.navigate(Routes.Settings.Home)
-                            // TODO: 머신러닝에 데이터 전달하여 학습시키기
                         },
                         text = "Fitting End. Start Tuna Keyboard"
                     )
                 } else {
+                    // TODO: 데이터가 앞뒤 글자에 대해 중복으로 저장되고 있음.
                     targetString?.logPressedCoordinates(Coordinate(touchX, touchY))
 
                     if (key != null) {
