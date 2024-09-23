@@ -70,12 +70,17 @@ import dev.patrickgold.florisboard.app.settings.theme.ThemeScreen
 import dev.patrickgold.florisboard.app.settings.typing.TypingScreen
 import dev.patrickgold.florisboard.app.settings.tunaSettings.TuneKeyboardLayout
 import dev.patrickgold.florisboard.app.setup.SetupScreen
+import dev.patrickgold.florisboard.app.fitting.FittingScreen
 import org.florisboard.lib.kotlin.curlyFormat
 
 @Suppress("FunctionName", "ConstPropertyName")
 object Routes {
     object Setup {
         const val Screen = "setup"
+    }
+
+    object Fitting {
+        const val Screen = "fitting/PresetScreen"
     }
 
     object Settings {
@@ -195,6 +200,8 @@ object Routes {
             }
         ) {
             composable(Setup.Screen) { SetupScreen() }
+
+            composableWithDeepLink(Fitting.Screen) { FittingScreen() }
 
             composableWithDeepLink(Settings.Home) { HomeScreen() }
 

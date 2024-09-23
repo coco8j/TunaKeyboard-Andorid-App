@@ -148,6 +148,14 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
         )
     }
 
+    val deepLearning = DeepLearning()
+    inner class DeepLearning {
+        val hasPreset = boolean(
+            key = "deep_learning__has_presetted",
+            default = false,
+        )
+    }
+
     val devtools = Devtools()
     inner class Devtools {
         val enabled = boolean(

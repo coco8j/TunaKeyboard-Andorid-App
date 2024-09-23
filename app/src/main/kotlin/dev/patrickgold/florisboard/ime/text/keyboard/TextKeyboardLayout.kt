@@ -18,6 +18,7 @@ package dev.patrickgold.florisboard.ime.text.keyboard
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import androidx.compose.foundation.border
@@ -100,6 +101,7 @@ import org.florisboard.lib.snygg.ui.snyggBackground
 import org.florisboard.lib.snygg.ui.solidColor
 import org.florisboard.lib.snygg.ui.spSize
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.sqrt
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -229,34 +231,34 @@ fun TextKeyboardLayout(
                 }
             },
     ) {
-        val keyMarginH by prefs.keyboard.keySpacingHorizontal.observeAsTransformingState { it.dp.toPx() }
-        val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
-
-        val desiredKey = remember { TextKey(data = TextKeyData.UNSPECIFIED) }
-
         val keyboardWidth = constraints.maxWidth.toFloat()
         val keyboardHeight = constraints.maxHeight.toFloat()
 
-        desiredKey.touchBounds.apply {
-            if (isSmartbarKeyboard) {
-                width = keyboardWidth / 8f
-                height = FlorisImeSizing.smartbarHeight.toPx()
-            } else {
-                width = keyboardWidth / 10f
-                height = when (keyboard.mode) {
-                    KeyboardMode.CHARACTERS,
-                    KeyboardMode.NUMERIC_ADVANCED,
-                    KeyboardMode.SYMBOLS,
-                    KeyboardMode.SYMBOLS2 -> {
-                        (FlorisImeSizing.keyboardUiHeight() / keyboard.rowCount)
-                            .coerceAtMost(FlorisImeSizing.keyboardRowBaseHeight * 1.12f).toPx()
+        keyboard.keys().forEach { textKey ->
+            val keyMarginH = textKey.visibleBounds.width / 12f
+            val keyMarginV = textKey.visibleBounds.height / 12f
+
+            textKey.touchBounds.apply {
+                if (isSmartbarKeyboard) {
+                    width = keyboardWidth / 8f
+                    height = FlorisImeSizing.smartbarHeight.toPx()
+                } else {
+                    width = keyboardWidth / 10f
+                    height = when (keyboard.mode) {
+                        KeyboardMode.CHARACTERS,
+                        KeyboardMode.NUMERIC_ADVANCED,
+                        KeyboardMode.SYMBOLS,
+                        KeyboardMode.SYMBOLS2 -> {
+                            (FlorisImeSizing.keyboardUiHeight() / keyboard.rowCount)
+                                .coerceAtMost(FlorisImeSizing.keyboardRowBaseHeight * 1.12f).toPx()
+                        }
+                        else -> FlorisImeSizing.keyboardRowBaseHeight.toPx()
                     }
-                    else -> FlorisImeSizing.keyboardRowBaseHeight.toPx()
                 }
             }
+            textKey.visibleBounds.applyFrom(textKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
+            keyboard.layout(keyboardWidth, keyboardHeight, textKey, !isSmartbarKeyboard)
         }
-        desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
         val popupUiController = rememberPopupUiController(
@@ -268,19 +270,19 @@ fun TextKeyboardLayout(
                     configuration.isOrientationLandscape() -> {
                         if (isSmartbarKeyboard) {
                             keyPopupWidth = key.visibleBounds.width * 1.0f
-                            keyPopupHeight = desiredKey.visibleBounds.height * 3.0f * 1.2f
+                            keyPopupHeight = key.visibleBounds.height * 3.0f * 1.2f
                         } else {
-                            keyPopupWidth = desiredKey.visibleBounds.width * 1.0f
-                            keyPopupHeight = desiredKey.visibleBounds.height * 3.0f
+                            keyPopupWidth = key.visibleBounds.width * 1.0f
+                            keyPopupHeight = key.visibleBounds.height * 3.0f
                         }
                     }
                     else -> {
                         if (isSmartbarKeyboard) {
                             keyPopupWidth = key.visibleBounds.width * 1.1f
-                            keyPopupHeight = desiredKey.visibleBounds.height * 2.5f * 1.2f
+                            keyPopupHeight = key.visibleBounds.height * 2.5f * 1.2f
                         } else {
-                            keyPopupWidth = desiredKey.visibleBounds.width * 1.1f
-                            keyPopupHeight = desiredKey.visibleBounds.height * 2.5f
+                            keyPopupWidth = key.visibleBounds.width * 1.1f
+                            keyPopupHeight = key.visibleBounds.height * 2.5f
                         }
                     }
                 }
@@ -333,8 +335,10 @@ fun TextKeyboardLayout(
             if (!isActive) break
             controller.onTouchEventInternal(event)
             event.recycle()
+
+            controller.fixKeyTilesData()
         }
-        controller.fixKeyTilesData()
+
     }
 }
 
@@ -421,13 +425,21 @@ private fun TextKeyButton(
                 isPressed = key.isPressed,
             )
             val hintFontSize = keyHintStyle.fontSize.spSize() safeTimes fontSizeMultiplier
+// 이거 뭔지 알아야 함
+            val test = (key.visibleBounds.width / 12f)
+            if (test < 0f) {
+                val label = key.label
+                val keycode = key.computedData.code
+                Log.v("checkValue", "padding: $test label: $label keycode: $keycode")
+            }
+
             Text(
                 modifier = Modifier
                     .wrapContentSize()
                     .align(if (isTelpadKey) BiasAlignment(0.5f, 0f) else Alignment.TopEnd)
                     .snyggBackground(context, keyHintStyle)
                     .padding(horizontal = (key.visibleBounds.width / 12f).toDp()),
-                text = hintedLabel,
+                    text = hintedLabel,
                 color = keyHintStyle.foreground.solidColor(context),
                 fontFamily = FontFamily.Monospace,
                 fontSize = hintFontSize,

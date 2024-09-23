@@ -22,18 +22,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.app.florisPreferenceModel
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.compose.FlorisOutlinedBox
 import dev.patrickgold.florisboard.lib.compose.FlorisScreen
-import dev.patrickgold.florisboard.lib.compose.stringRes
 import dev.patrickgold.florisboard.lib.observeAsTransformingState
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.getIndexFromPos
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
-import dev.patrickgold.florisboard.lib.util.launchUrl
+
+val TrainOne = FontFamily(
+    Font(R.font.train_one_regular)
+)
 
 @Composable
 fun TuneKeyboardLayout() = FlorisScreen {
@@ -74,6 +79,12 @@ fun TuneKeyboardLayout() = FlorisScreen {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text(
+                text = "Chose Key and Fix!",
+                fontFamily = TrainOne,
+                fontSize = 24.sp
+            )
+            Spacer(modifier = Modifier.weight(10f))
             FlorisOutlinedBox(
                 modifier = Modifier.size(80.dp).padding(vertical = 8.dp, horizontal = 16.dp),
             ) {
@@ -83,7 +94,7 @@ fun TuneKeyboardLayout() = FlorisScreen {
                     style = MaterialTheme.typography.displaySmall,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                }
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -91,7 +102,7 @@ fun TuneKeyboardLayout() = FlorisScreen {
                 Text("너비 $width")
                 Text("너비를 설정합니다.")
             }
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
             Slider(
                 value = width,
                 valueRange = min.toFloat()..max.toFloat(),
@@ -125,7 +136,7 @@ fun TuneKeyboardLayout() = FlorisScreen {
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -133,7 +144,7 @@ fun TuneKeyboardLayout() = FlorisScreen {
                 Text("높이 $height")
                 Text("높이를 설정합니다.")
             }
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
             Slider(
                 value = height,
                 valueRange = min.toFloat()..max.toFloat(),
