@@ -68,9 +68,10 @@ import dev.patrickgold.florisboard.app.settings.theme.ThemeManagerScreen
 import dev.patrickgold.florisboard.app.settings.theme.ThemeManagerScreenAction
 import dev.patrickgold.florisboard.app.settings.theme.ThemeScreen
 import dev.patrickgold.florisboard.app.settings.typing.TypingScreen
-import dev.patrickgold.florisboard.app.settings.tunaSettings.TuneKeyboardLayout
 import dev.patrickgold.florisboard.app.setup.SetupScreen
-import dev.patrickgold.florisboard.app.fitting.FittingScreen
+import dev.patrickgold.florisboard.app.tunaKeyboard.FittingScreen
+import dev.patrickgold.florisboard.app.tunaKeyboard.KeySettingScreen
+import dev.patrickgold.florisboard.app.tunaKeyboard.TunaHomeScreen
 import org.florisboard.lib.kotlin.curlyFormat
 
 @Suppress("FunctionName", "ConstPropertyName")
@@ -79,14 +80,20 @@ object Routes {
         const val Screen = "setup"
     }
 
-    object Fitting {
-        const val Screen = "fitting/PresetScreen"
+    object TunaKeyboard {
+        const val Home = "tunaKeyboard/TunaHomeScreen"
+        const val Fitting = "tunaKeyboard/FittingScreen"
+        const val Setting = "tunaKeyboard/IndividualSettingScreen"
     }
+
+//    object Fitting {
+//        const val Screen = "fitting/PresetScreen"
+//    }
 
     object Settings {
         const val Home = "settings"
 
-        const val TunaSettings = "settings/tunaSettings"
+//        const val TunaSettings = "settings/tunaSettings"
         const val Localization = "settings/localization"
         const val SelectLocale = "settings/localization/select-locale"
         const val LanguagePackManager = "settings/localization/language-pack-manage/{action}"
@@ -201,11 +208,12 @@ object Routes {
         ) {
             composable(Setup.Screen) { SetupScreen() }
 
-            composableWithDeepLink(Fitting.Screen) { FittingScreen() }
+            composableWithDeepLink(TunaKeyboard.Home) { TunaHomeScreen() }
+            composableWithDeepLink(TunaKeyboard.Fitting) { FittingScreen() }
+            composableWithDeepLink(TunaKeyboard.Setting) { KeySettingScreen() }
 
             composableWithDeepLink(Settings.Home) { HomeScreen() }
 
-            composableWithDeepLink(Settings.TunaSettings) { TuneKeyboardLayout() }
             composableWithDeepLink(Settings.Localization) { LocalizationScreen() }
             composableWithDeepLink(Settings.SelectLocale) { SelectLocaleScreen() }
             composableWithDeepLink(Settings.LanguagePackManager) { navBackStack ->

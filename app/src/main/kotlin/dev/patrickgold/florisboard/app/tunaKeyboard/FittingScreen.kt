@@ -1,12 +1,10 @@
-package dev.patrickgold.florisboard.app.fitting
+package dev.patrickgold.florisboard.app.tunaKeyboard
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +20,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.app.LocalNavController
 import dev.patrickgold.florisboard.app.Routes
 import dev.patrickgold.florisboard.app.florisPreferenceModel
+import dev.patrickgold.florisboard.ime.keyboard.DefaultComputingEvaluator.keyboard
+import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.observeAsTransformingState
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.getIndexFromPos
 
@@ -121,7 +119,10 @@ class SampleStrings (
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StringScreen(keyboard: TextKeyboard)  {
+fun FittingScreen() = FlorisScreen {
+    title = "Tuna Setting"
+    previewFieldVisible = true
+
     val prefs by florisPreferenceModel()
     val navController = LocalNavController.current
 
@@ -134,7 +135,8 @@ fun StringScreen(keyboard: TextKeyboard)  {
     val strings = sampleString.get()
     var targetString by remember { mutableStateOf<SampleCharacter?>(null) }
 
-    Box {
+    content {
+        // TODO: 테스트 시작 상태 전환 별건으로 처리하기
         if (targetString == null) {
             CustomElevatedButton(
                 onClick = {
@@ -154,9 +156,8 @@ fun StringScreen(keyboard: TextKeyboard)  {
                     text = "Type the characters below",
                     color = Color.Red,
                     fontFamily = WorkSans,
-                    fontSize = 15.sp,
+                    fontSize = 20.sp,
                 )
-                // TODO: 테스트용 글자 길이가 다 안담기는 이슈
                 Surface(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp)
                         .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
@@ -169,7 +170,7 @@ fun StringScreen(keyboard: TextKeyboard)  {
                             text = character.character,
                             color = if (character.hasCorrectKey) Color.Green else Color.Black,
                             fontFamily = WorkSans,
-                            fontSize = 20.sp,
+                            fontSize = 30.sp,
                         )
                     }
                 }
@@ -180,9 +181,9 @@ fun StringScreen(keyboard: TextKeyboard)  {
                     CustomElevatedButton(
                         onClick = {
                             // TODO: 머신러닝에 데이터 전달하여 학습시키기,
-                            navController.navigate(Routes.Settings.Home)
+                            navController.navigate(Routes.TunaKeyboard.Home)
                         },
-                        text = "Fitting End. Start Tuna Keyboard"
+                        text = "Fitting End. Enjoy Tuna Keyboard!"
                     )
                 } else {
                     // TODO: 데이터가 앞뒤 글자에 대해 중복으로 저장되고 있음.

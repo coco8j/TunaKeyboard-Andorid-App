@@ -286,7 +286,7 @@ private fun PreferenceUiScope<AppPrefs>.steps(
                 StepButton(label = stringRes(R.string.setup__finish_up__finish_btn)) {
                     this@steps.prefs.internal.isImeSetUp.set(true)
 //                    navController.navigate(Routes.Settings.Home) {
-                    navController.navigate(Routes.Fitting.Screen) {
+                    navController.navigate(Routes.TunaKeyboard.Home) {
                         popUpTo(Routes.Setup.Screen) {
                             inclusive = true
                         }
@@ -334,7 +334,7 @@ private fun PreferenceUiScope<AppPrefs>.steps(
                 StepButton(label = stringRes(R.string.setup__finish_up__finish_btn)) {
                     this@steps.prefs.internal.isImeSetUp.set(true)
 //                    navController.navigate(Routes.Settings.Home) {
-                    navController.navigate(Routes.Fitting.Screen) {
+                    navController.navigate(Routes.TunaKeyboard.Home) {
                         popUpTo(Routes.Setup.Screen) {
                             inclusive = true
                         }

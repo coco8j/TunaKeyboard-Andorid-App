@@ -107,11 +107,6 @@ fun HomeScreen() = FlorisScreen {
         }*/
         Preference(
             icon = Icons.Default.Language,
-            title = "Tuna Keyboard Setting",
-            onClick = { navController.navigate(Routes.Settings.TunaSettings) },
-        )
-        Preference(
-            icon = Icons.Default.Language,
             title = stringRes(R.string.settings__localization__title),
             onClick = { navController.navigate(Routes.Settings.Localization) },
         )

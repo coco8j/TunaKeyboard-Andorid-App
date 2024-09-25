@@ -1,4 +1,4 @@
-package dev.patrickgold.florisboard.app.settings.tunaSettings
+package dev.patrickgold.florisboard.app.tunaKeyboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,11 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.app.florisPreferenceModel
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import dev.patrickgold.florisboard.keyboardManager
@@ -36,12 +33,8 @@ import dev.patrickgold.florisboard.lib.observeAsTransformingState
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.getIndexFromPos
 import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 
-val TrainOne = FontFamily(
-    Font(R.font.train_one_regular)
-)
-
 @Composable
-fun TuneKeyboardLayout() = FlorisScreen {
+fun KeySettingScreen() = FlorisScreen {
     title = "Tuna Setting"
     previewFieldVisible = true
 
@@ -52,10 +45,8 @@ fun TuneKeyboardLayout() = FlorisScreen {
     val keyboard = evaluator.keyboard as TextKeyboard
 
     //TODO: 키가 중심점을 벗어나서 설정되지 않게하기
-//    val min = 100.0
-//    val max = 300.0
-    val minH = 80.0
-    val maxH = 160.0
+    val minH = 100.0
+    val maxH = 260.0
     val minW = 30.0
     val maxW = 100.0
 
@@ -76,10 +67,8 @@ fun TuneKeyboardLayout() = FlorisScreen {
     var centerY:Float = 0f
 
     if (key != null) {
-//        width = key.touchBounds.width
-//        height = key.touchBounds.height
-        width = key.visibleBounds.width
-        height = key.visibleBounds.height
+        width = key.touchBounds.width
+        height = key.touchBounds.height
 
         val (x, y) = key.touchBounds.center
         centerX = x
@@ -122,26 +111,16 @@ fun TuneKeyboardLayout() = FlorisScreen {
                 onValueChange = { newValue ->
                     previousWidth = width
                     width = newValue
-//                    key?.touchBounds?.width = newValue
-                    key?.visibleBounds?.width = newValue
+                    key?.touchBounds?.width = newValue
                 },
                 onValueChangeFinished = {
                     key?.let {
-                        val widthDifference = width - previousWidth
-
-                        val oldLeft = it.touchBounds.left
-                        val oldRight = it.touchBounds.right
-
                         if (centerX != 0f) {
                             val newMarginH = width / 12f
 
-                            it.visibleBounds.left = centerX + (width / 2) - newMarginH
-                            it.visibleBounds.right = centerX - (width / 2) + newMarginH
+                            it.touchBounds.left = centerX - (width / 2) - newMarginH
+                            it.touchBounds.right = centerX + (width / 2) + newMarginH
                         }
-
-//                        it.touchBounds.left = oldLeft - (widthDifference / 2)
-//                        it.touchBounds.right = oldRight + (widthDifference / 2)
-
                         saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
                     }
                 },
@@ -167,31 +146,21 @@ fun TuneKeyboardLayout() = FlorisScreen {
             Spacer(modifier = Modifier.weight(1f))
             Slider(
                 value = height,
-                valueRange = minW.toFloat()..maxH.toFloat(),
-                steps = ((maxH.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
+                valueRange = minH.toFloat()..maxH.toFloat(),
+                steps = ((maxH.toFloat() - minH.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
                 onValueChange = { newValue ->
                     previousHeight = height
                     height = newValue
-//                    key?.touchBounds?.height = newValue
-                    key?.visibleBounds?.height = newValue
+                    key?.touchBounds?.height = newValue
                 },
                 onValueChangeFinished = {
                     key?.let {
-                        val heightDifference = height - previousHeight
-
-                        val oldTop = it.touchBounds.top
-                        val oldBottom = it.touchBounds.bottom
-
                         if (centerY != 0f) {
                             val newMarginV = height / 12f
 
-                            it.visibleBounds.top = centerY + (height / 2) - newMarginV
-                            it.visibleBounds.bottom = centerY - (height / 2) + newMarginV
+                            it.touchBounds.top = centerY - (height / 2) - newMarginV
+                            it.touchBounds.bottom = centerY + (height / 2) + newMarginV
                         }
-
-//                        it.touchBounds.top = oldTop - (heightDifference / 2)
-//                        it.touchBounds.bottom = oldBottom + (heightDifference / 2)
-
                         saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
                     }
                 },

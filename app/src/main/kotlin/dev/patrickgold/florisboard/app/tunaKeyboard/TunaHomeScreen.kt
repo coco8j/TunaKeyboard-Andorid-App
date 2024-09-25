@@ -1,4 +1,4 @@
-package dev.patrickgold.florisboard.app.fitting
+package dev.patrickgold.florisboard.app.tunaKeyboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +12,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,8 +27,6 @@ import dev.patrickgold.florisboard.R
 import dev.patrickgold.florisboard.app.LocalNavController
 import dev.patrickgold.florisboard.app.Routes
 import dev.patrickgold.florisboard.app.florisPreferenceModel
-import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
-import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.compose.FlorisErrorCard
 import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.compose.FlorisWarningCard
@@ -45,17 +42,16 @@ val WorkSans = FontFamily(
 )
 
 @Composable
-fun FittingScreen() = FlorisScreen {
-    title = "Tuna Setting"
+fun TunaHomeScreen() = FlorisScreen {
+    title = "Welcome"
     navigationIconVisible = false
     previewFieldVisible = true
 
     val prefs by florisPreferenceModel()
+    val hasPreset = prefs.deepLearning.hasPreset.get()
+
     val navController = LocalNavController.current
     val context = LocalContext.current
-    val keyboardManager by context.keyboardManager()
-    val evaluator by keyboardManager.activeEvaluator.collectAsState()
-    val keyboard = evaluator.keyboard as TextKeyboard
 
     content {
         val isFlorisBoardEnabled by InputMethodUtils.observeIsFlorisboardEnabled(foregroundOnly = true)
@@ -75,7 +71,6 @@ fun FittingScreen() = FlorisScreen {
                 onClick = { InputMethodUtils.showImePicker(context) },
             )
         }
-        val hasPreset = prefs.deepLearning.hasPreset.get()
             Column(
                 modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -93,10 +88,13 @@ fun FittingScreen() = FlorisScreen {
                     contentScale = ContentScale.FillWidth,
                     modifier = Modifier.fillMaxWidth(0.5f)
                 )
-                StringScreen(keyboard = keyboard)
+                MintNavButton(
+                    onClick = {navController.navigate(Routes.TunaKeyboard.Fitting)} ,
+                    text = "Fitting Start",
+                )
                 Spacer(modifier = Modifier.size(10.dp))
                 BlackNavButton(
-                    onClick = {navController.navigate(Routes.Settings.TunaSettings)} ,
+                    onClick = {navController.navigate(Routes.TunaKeyboard.Setting)} ,
                     text = "Individual key Setting",
                 )
             }
@@ -110,6 +108,21 @@ fun BlackNavButton(onClick: () -> Unit, text: String, enabled: Boolean = true) {
         onClick = onClick,
         colors = ButtonDefaults.elevatedButtonColors(
             containerColor = Color.Black,
+            contentColor = Color.White
+        ),
+        modifier = Modifier.size(width = 300.dp, height = 50.dp),
+        enabled = enabled
+    ) {
+        Text(text)
+    }
+}
+
+@Composable
+fun MintNavButton(onClick: () -> Unit, text: String, enabled: Boolean = true) {
+    ElevatedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = Color(0xFF00CBDB),
             contentColor = Color.White
         ),
         modifier = Modifier.size(width = 300.dp, height = 50.dp),
