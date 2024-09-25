@@ -52,12 +52,17 @@ fun TuneKeyboardLayout() = FlorisScreen {
     val keyboard = evaluator.keyboard as TextKeyboard
 
     //TODO: 키가 중심점을 벗어나서 설정되지 않게하기
-    val min = 20.0
-    val max = 300.0
-    val stepIncrement = 10.0
+//    val min = 100.0
+//    val max = 300.0
+    val minH = 80.0
+    val maxH = 160.0
+    val minW = 30.0
+    val maxW = 100.0
 
-    var width by remember { mutableStateOf(0.5f) }
-    var height by remember { mutableStateOf(0.2f) }
+    val stepIncrement = 5.0
+
+    var width by remember { mutableStateOf(140.0f) }
+    var height by remember { mutableStateOf(140.0f) }
     var previousWidth by remember { mutableStateOf(0f) }
     var previousHeight by remember { mutableStateOf(0f) }
 
@@ -67,15 +72,22 @@ fun TuneKeyboardLayout() = FlorisScreen {
 
     val (rowIndex, keyIndex) = getIndexFromPos(touchX, touchY)
     val key = keyboard.getKeyForPos(touchX, touchY)
+    var centerX:Float = 0f
+    var centerY:Float = 0f
 
     if (key != null) {
-        width = key.touchBounds.width
-        height = key.touchBounds.height
-    }
+//        width = key.touchBounds.width
+//        height = key.touchBounds.height
+        width = key.visibleBounds.width
+        height = key.visibleBounds.height
 
+        val (x, y) = key.touchBounds.center
+        centerX = x
+        centerY = y
+    }
     content {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(30.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -105,12 +117,13 @@ fun TuneKeyboardLayout() = FlorisScreen {
             Spacer(modifier = Modifier.weight(1f))
             Slider(
                 value = width,
-                valueRange = min.toFloat()..max.toFloat(),
-                steps = ((max.toFloat() - min.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
+                valueRange = minW.toFloat()..maxW.toFloat(),
+                steps = ((maxW.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
                 onValueChange = { newValue ->
                     previousWidth = width
                     width = newValue
-                    key?.touchBounds?.width = newValue
+//                    key?.touchBounds?.width = newValue
+                    key?.visibleBounds?.width = newValue
                 },
                 onValueChangeFinished = {
                     key?.let {
@@ -119,8 +132,15 @@ fun TuneKeyboardLayout() = FlorisScreen {
                         val oldLeft = it.touchBounds.left
                         val oldRight = it.touchBounds.right
 
-                        it.touchBounds.left = oldLeft - (widthDifference / 2)
-                        it.touchBounds.right = oldRight + (widthDifference / 2)
+                        if (centerX != 0f) {
+                            val newMarginH = width / 12f
+
+                            it.visibleBounds.left = centerX + (width / 2) - newMarginH
+                            it.visibleBounds.right = centerX - (width / 2) + newMarginH
+                        }
+
+//                        it.touchBounds.left = oldLeft - (widthDifference / 2)
+//                        it.touchBounds.right = oldRight + (widthDifference / 2)
 
                         saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
                     }
@@ -147,12 +167,13 @@ fun TuneKeyboardLayout() = FlorisScreen {
             Spacer(modifier = Modifier.weight(1f))
             Slider(
                 value = height,
-                valueRange = min.toFloat()..max.toFloat(),
-                steps = ((max.toFloat() - min.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
+                valueRange = minW.toFloat()..maxH.toFloat(),
+                steps = ((maxH.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
                 onValueChange = { newValue ->
                     previousHeight = height
                     height = newValue
-                    key?.touchBounds?.height = newValue
+//                    key?.touchBounds?.height = newValue
+                    key?.visibleBounds?.height = newValue
                 },
                 onValueChangeFinished = {
                     key?.let {
@@ -161,8 +182,15 @@ fun TuneKeyboardLayout() = FlorisScreen {
                         val oldTop = it.touchBounds.top
                         val oldBottom = it.touchBounds.bottom
 
-                        it.touchBounds.top = oldTop - (heightDifference / 2)
-                        it.touchBounds.bottom = oldBottom + (heightDifference / 2)
+                        if (centerY != 0f) {
+                            val newMarginV = height / 12f
+
+                            it.visibleBounds.top = centerY + (height / 2) - newMarginV
+                            it.visibleBounds.bottom = centerY - (height / 2) + newMarginV
+                        }
+
+//                        it.touchBounds.top = oldTop - (heightDifference / 2)
+//                        it.touchBounds.bottom = oldBottom + (heightDifference / 2)
 
                         saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
                     }
@@ -188,7 +216,6 @@ fun TuneKeyboardLayout() = FlorisScreen {
                 }) {
                     Text("초기화")
                 }
-                Text("너비를 설정합니다.")
             }
         }
     }

@@ -4,7 +4,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -116,6 +119,7 @@ class SampleStrings (
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StringScreen(keyboard: TextKeyboard)  {
     val prefs by florisPreferenceModel()
@@ -152,19 +156,20 @@ fun StringScreen(keyboard: TextKeyboard)  {
                     fontFamily = WorkSans,
                     fontSize = 15.sp,
                 )
+                // TODO: 테스트용 글자 길이가 다 안담기는 이슈
                 Surface(
-                    modifier = Modifier.fillMaxWidth().padding(10.dp)
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp)
                         .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
                 ) {
-                Row (
-                    modifier = Modifier.fillMaxWidth().padding(10.dp),
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp),
                 ) {
                     for (character in strings) {
                         Text(
                             text = character.character,
                             color = if (character.hasCorrectKey) Color.Green else Color.Black,
                             fontFamily = WorkSans,
-                            fontSize = 18.sp,
+                            fontSize = 20.sp,
                         )
                     }
                 }

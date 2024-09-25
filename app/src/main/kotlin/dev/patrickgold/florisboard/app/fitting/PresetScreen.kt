@@ -1,19 +1,25 @@
 package dev.patrickgold.florisboard.app.fitting
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Language
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -29,7 +35,6 @@ import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.compose.FlorisWarningCard
 import dev.patrickgold.florisboard.lib.compose.stringRes
 import dev.patrickgold.florisboard.lib.util.InputMethodUtils
-import dev.patrickgold.jetpref.datastore.ui.Preference
 
 val TrainOne = FontFamily(
     Font(R.font.train_one_regular)
@@ -71,13 +76,6 @@ fun FittingScreen() = FlorisScreen {
             )
         }
         val hasPreset = prefs.deepLearning.hasPreset.get()
-        if (hasPreset) {
-            Preference(
-                icon = Icons.Default.Language,
-                title = "Tuna Keyboard Setting",
-                onClick = { navController.navigate(Routes.Settings.TunaSettings) },
-            )
-        } else {
             Column(
                 modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,12 +83,38 @@ fun FittingScreen() = FlorisScreen {
             ) {
                 Text(
                     modifier = Modifier.padding(50.dp),
-                    text = "Try Type",
+                    text = "Tuna Keyboard",
                     fontFamily = TrainOne,
                     fontSize = 30.sp
                 )
+                Image(
+                    painter = painterResource(id = R.drawable.logo_tuna_keyboard),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                )
                 StringScreen(keyboard = keyboard)
+                Spacer(modifier = Modifier.size(10.dp))
+                BlackNavButton(
+                    onClick = {navController.navigate(Routes.Settings.TunaSettings)} ,
+                    text = "Individual key Setting",
+                )
             }
-        }
+
+    }
+}
+
+@Composable
+fun BlackNavButton(onClick: () -> Unit, text: String, enabled: Boolean = true) {
+    ElevatedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.elevatedButtonColors(
+            containerColor = Color.Black,
+            contentColor = Color.White
+        ),
+        modifier = Modifier.size(width = 300.dp, height = 50.dp),
+        enabled = enabled
+    ) {
+        Text(text)
     }
 }
