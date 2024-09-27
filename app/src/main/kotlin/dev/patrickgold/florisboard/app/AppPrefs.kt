@@ -148,6 +148,37 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
         )
     }
 
+    // TODO(Notification): custom value
+    val coordinates = Coordinates()
+    inner class Coordinates {
+        val hasFitted = boolean(
+            key = "coordinates__has_fitted",
+            default = false,
+        )
+        val history = string(
+            key = "coordinates__history",
+            default = "",
+        )
+        val optimized = string(
+            key = "coordinates__optimized",
+            default = "",
+        )
+    }
+    // TODO(Notification): custom value
+    val customFlayValues = CustomFlayValues()
+    inner class CustomFlayValues {
+        val customFlayWidthFactor = string(
+            key = "custom_flay_width_factor",
+            default = ""
+        )
+
+        val tempData = string(
+            key = "custom_flay_width_factor_temp_data",
+            default = ""
+        )
+    }
+
+    // TODO(Notification): custom value
     val deepLearning = DeepLearning()
     inner class DeepLearning {
         val hasPreset = boolean(
@@ -487,6 +518,7 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             key = "keyboard__incognito_indicator",
             default = IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD,
         )
+        // TODO(Notification): custom value
         val hasKeyTilesAllSettled = boolean(
             key = "keyboard__has_key_tiles_all_settled",
             default = false,
@@ -528,7 +560,7 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             return fontSizeMultiplier
         }
     }
-
+    // TODO(Notification): custom value
     val touchedKey = TouchedKey()
     inner class TouchedKey {
         val keyLabel = string(

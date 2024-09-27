@@ -101,7 +101,6 @@ import org.florisboard.lib.snygg.ui.snyggBackground
 import org.florisboard.lib.snygg.ui.solidColor
 import org.florisboard.lib.snygg.ui.spSize
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.sqrt
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -116,7 +115,6 @@ fun TextKeyboardLayout(
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val glideTypingManager by context.glideTypingManager()
-
     val keyboard = evaluator.keyboard as TextKeyboard
     val glideEnabledInternal by prefs.glide.enabled.observeAsState()
     val glideEnabled = glideEnabledInternal && evaluator.editorInfo.isRichInputEditor &&
@@ -133,15 +131,6 @@ fun TextKeyboardLayout(
         }
     }
     val touchEventChannel = remember { Channel<MotionEvent>(64) }
-
-    val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
-    val keyTilesInfo by prefs.keyboard.keyTilesInfo.observeAsState()
-
-    LaunchedEffect(keyTilesInfo) {
-        if (hasKeyTilesAllSettled) {
-            // Perform an action when the key tiles have all settled
-        }
-    }
 
     fun resetAllKeys() {
         try {
@@ -231,34 +220,40 @@ fun TextKeyboardLayout(
                 }
             },
     ) {
+        val keyMarginH by prefs.keyboard.keySpacingHorizontal.observeAsTransformingState { it.dp.toPx() }
+        val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
+        val customFlayValue by prefs.customFlayValues.customFlayWidthFactor.observeAsTransformingState { it }
+
+        LaunchedEffect(customFlayValue) {
+            /* This Trigger recompose keyboard layout */
+        }
+
+        val desiredKey = remember { TextKey(data = TextKeyData.UNSPECIFIED) }
+
         val keyboardWidth = constraints.maxWidth.toFloat()
         val keyboardHeight = constraints.maxHeight.toFloat()
 
-        keyboard.keys().forEach { textKey ->
-            val keyMarginH = textKey.visibleBounds.width / 12f
-            val keyMarginV = textKey.visibleBounds.height / 12f
-
-            textKey.touchBounds.apply {
-                if (isSmartbarKeyboard) {
-                    width = keyboardWidth / 8f
-                    height = FlorisImeSizing.smartbarHeight.toPx()
-                } else {
-                    width = keyboardWidth / 10f
-                    height = when (keyboard.mode) {
-                        KeyboardMode.CHARACTERS,
-                        KeyboardMode.NUMERIC_ADVANCED,
-                        KeyboardMode.SYMBOLS,
-                        KeyboardMode.SYMBOLS2 -> {
-                            (FlorisImeSizing.keyboardUiHeight() / keyboard.rowCount)
-                                .coerceAtMost(FlorisImeSizing.keyboardRowBaseHeight * 1.12f).toPx()
-                        }
-                        else -> FlorisImeSizing.keyboardRowBaseHeight.toPx()
+        desiredKey.touchBounds.apply {
+            if (isSmartbarKeyboard) {
+                width = keyboardWidth / 8f
+                height = FlorisImeSizing.smartbarHeight.toPx()
+            } else {
+                width = keyboardWidth / 10f
+                height = when (keyboard.mode) {
+                    KeyboardMode.CHARACTERS,
+                    KeyboardMode.NUMERIC_ADVANCED,
+                    KeyboardMode.SYMBOLS,
+                    KeyboardMode.SYMBOLS2 -> {
+                        (FlorisImeSizing.keyboardUiHeight() / keyboard.rowCount)
+                            .coerceAtMost(FlorisImeSizing.keyboardRowBaseHeight * 1.12f).toPx()
                     }
+                    else -> FlorisImeSizing.keyboardRowBaseHeight.toPx()
                 }
             }
-            textKey.visibleBounds.applyFrom(textKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-            keyboard.layout(keyboardWidth, keyboardHeight, textKey, !isSmartbarKeyboard)
         }
+
+        desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
+        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
         val popupUiController = rememberPopupUiController(
@@ -337,6 +332,7 @@ fun TextKeyboardLayout(
             event.recycle()
 
             controller.fixKeyTilesData()
+            Log.v("checkValue", "Saved key tiles data!!!!!!!!!!")
         }
 
     }

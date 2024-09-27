@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,99 +24,47 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.app.LocalNavController
 import dev.patrickgold.florisboard.app.Routes
 import dev.patrickgold.florisboard.app.florisPreferenceModel
-import dev.patrickgold.florisboard.ime.keyboard.DefaultComputingEvaluator.keyboard
+import dev.patrickgold.florisboard.ime.text.key.KeyCode
+import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
+import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.observeAsTransformingState
-import dev.patrickgold.florisboard.lib.util.PreferenceUtils.getIndexFromPos
 
-data class Coordinate(val x: Float, val y: Float)
+class TestCharacter (text: String, isCorrect: Boolean = false) {
+    val text = text
+    var isCorrect = isCorrect
 
-data class SampleCharacter(
-    val character: String,
-    val rowIndex: Int,
-    val keyIndex: Int,
-    var hasCorrectKey: Boolean = false,
-    private val pressedCoordinates: MutableList<Coordinate> = mutableListOf()
-) {
-    fun logPressedCoordinates(coordinate: Coordinate): Unit {
-        pressedCoordinates.add(coordinate)
-    }
-    fun getPressedCoordinates(): List<Coordinate> {
-        return pressedCoordinates
-    }
-    fun correct(): Unit {
-        hasCorrectKey = !hasCorrectKey
-    }
-    fun equals(keyRowIndex:Int, keyKeyIndex:Int): Boolean {
-        return rowIndex == keyRowIndex && keyIndex == keyKeyIndex
+    fun correct() {
+        if (!isCorrect) {
+            isCorrect = true
+        }
     }
 }
 
-class SampleStrings (
-    private val sampleString: Array<SampleCharacter> = arrayOf(
-        SampleCharacter("t", 0, 4),
-        SampleCharacter("h", 1, 5),
-        SampleCharacter("e", 0, 2),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("q", 0, 0),
-        SampleCharacter("u", 0, 6),
-        SampleCharacter("i", 0, 7),
-        SampleCharacter("c", 2, 3),
-        SampleCharacter("k", 1, 7),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("b", 2, 5),
-        SampleCharacter("r", 0, 3),
-        SampleCharacter("o", 0, 8),
-        SampleCharacter("w", 0, 1),
-        SampleCharacter("n", 2, 6),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("f", 1, 3),
-        SampleCharacter("o", 0, 8),
-        SampleCharacter("x", 2, 2),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("j", 1, 6),
-        SampleCharacter("u", 0, 6),
-        SampleCharacter("m", 2, 7),
-        SampleCharacter("p", 0, 9),
-        SampleCharacter("s", 1, 1),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("o", 0, 8),
-        SampleCharacter("v", 2, 4),
-        SampleCharacter("e", 0, 2),
-        SampleCharacter("r", 0, 3),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("a", 1, 0),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("l", 1, 8),
-        SampleCharacter("a", 1, 0),
-        SampleCharacter("z", 2, 1),
-        SampleCharacter("y", 0, 5),
-        SampleCharacter(" ", 3, 4),
-        SampleCharacter("d", 1, 2),
-        SampleCharacter("o", 0, 8),
-        SampleCharacter("g", 1, 4),
-    ),
+val sampleString = "the quick brown fox jumps over the lazy dog"
+class TestString () {
+    val testString: List<TestCharacter> = sampleString.map { TestCharacter(it.toString()) }
     private var index: Int = 0
-) {
-    fun start(): SampleCharacter {
-        return sampleString[0]
-    }
-    fun next(): SampleCharacter {
-        index += 1
-
-        if (index >= sampleString.size) {
-            return SampleCharacter("TEST_END", -1, -1)
+        fun get(): List<TestCharacter> {
+            return testString
         }
-        return sampleString[index]
-    }
-    fun get():Array<SampleCharacter> {
-        return sampleString
-    }
+        fun start(): TestCharacter {
+            return testString[0]
+        }
+        fun next(): TestCharacter {
+            index += 1
+            if (index >= sampleString.length) {
+                return TestCharacter("TEST_END")
+            }
+            return testString[index]
+        }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -126,73 +76,90 @@ fun FittingScreen() = FlorisScreen {
     val prefs by florisPreferenceModel()
     val navController = LocalNavController.current
 
+    val context = LocalContext.current
+    val keyboardManager by context.keyboardManager()
+    val evaluator by keyboardManager.activeEvaluator.collectAsState()
+    val keyboard = evaluator.keyboard as TextKeyboard
+
     val touchX by prefs.touchedKey.posX.observeAsTransformingState { it }
     val touchY by prefs.touchedKey.posY.observeAsTransformingState { it }
-    val (rowIndex, keyIndex) = getIndexFromPos(touchX, touchY)
     var key = keyboard.getKeyForPos(touchX, touchY)
 
-    val sampleString by remember { mutableStateOf(SampleStrings()) }
-    val strings = sampleString.get()
-    var targetString by remember { mutableStateOf<SampleCharacter?>(null) }
+    val targetString by remember { mutableStateOf(TestString()) }
+    var targetCharacter by remember { mutableStateOf<TestCharacter>(TestCharacter("BEFORE_TEST")) }
 
     content {
-        // TODO: 테스트 시작 상태 전환 별건으로 처리하기
-        if (targetString == null) {
-            CustomElevatedButton(
-                onClick = {
-                    targetString = sampleString.start()
-                    key = null
-                          },
-                text = "Fitting Start"
-            )
-        } else {
             Column(
-                modifier = Modifier.fillMaxWidth().padding( horizontal = 50.dp),
+                modifier = Modifier.fillMaxWidth().padding( horizontal = 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth().padding(10.dp),
-                    text = "Type the characters below",
-                    color = Color.Red,
-                    fontFamily = WorkSans,
-                    fontSize = 20.sp,
-                )
+                if (targetCharacter.text == "BEFORE_TEST") {
+                    Text(
+                        modifier = Modifier.fillMaxWidth().padding(20.dp).align(Alignment.CenterHorizontally),
+                        text = "안내",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 50.sp,
+                    )
+                    Text(
+                        modifier = Modifier.fillMaxWidth().padding(10.dp),
+                        text = "1. 다음 화면에서 나타나는 박스 안 문자를 타이핑 해주세요.",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 20.sp,
+                    )
+                    Text(
+                        modifier = Modifier.fillMaxWidth().padding(10.dp),
+                        text = "2. 틀려도 지울 필요는 없습니다.",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 20.sp,
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                    CustomElevatedButton(
+                        onClick = {
+                            targetCharacter = targetString.start()
+                            key = null
+                        },
+                        text = "시작하기"
+                    )
+                } else {
                 Surface(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp)
                         .border(1.dp, Color.Black, RoundedCornerShape(10.dp))
                 ) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp),
-                ) {
-                    for (character in strings) {
-                        Text(
-                            text = character.character,
-                            color = if (character.hasCorrectKey) Color.Green else Color.Black,
-                            fontFamily = WorkSans,
-                            fontSize = 30.sp,
-                        )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp),
+                    ) {
+                        for (character in targetString.get()) {
+                            Text(
+                                text = character.text,
+                                color = if (character.isCorrect) Color.Green else Color.Black,
+                                fontWeight = FontWeight.SemiBold,
+                                fontFamily = WorkSans,
+                                fontSize = 35.sp,
+                            )
+                        }
                     }
                 }
-                }
-                if (targetString?.character == "TEST_END") {
+
+                if (targetCharacter.text == "TEST_END") {
+                    //TODO: hasPreset 미사용중
                     prefs.deepLearning.hasPreset.set(true)
 
                     CustomElevatedButton(
                         onClick = {
                             // TODO: 머신러닝에 데이터 전달하여 학습시키기,
-                            navController.navigate(Routes.TunaKeyboard.Home)
-                        },
-                        text = "Fitting End. Enjoy Tuna Keyboard!"
+                            navController.navigate(Routes.TunaKeyboard.Home) },
+                        text = "홈으로"
                     )
                 } else {
-                    // TODO: 데이터가 앞뒤 글자에 대해 중복으로 저장되고 있음.
-                    targetString?.logPressedCoordinates(Coordinate(touchX, touchY))
-
                     if (key != null) {
-                        if (targetString?.equals(rowIndex, keyIndex) == true) {
-                            targetString?.correct()
-                            targetString = sampleString.next()
+                        KeyHistoryManager.addToHistory(key!!, Coordinate(touchX, touchY))
+
+                        if (targetCharacter.text == key!!.label ||
+                            (targetCharacter.text == " " && key!!.computedData.code == KeyCode.SPACE)) {
+                            targetCharacter.correct()
+                            targetCharacter = targetString.next()
+                            key = null
                         }
                     }
                 }

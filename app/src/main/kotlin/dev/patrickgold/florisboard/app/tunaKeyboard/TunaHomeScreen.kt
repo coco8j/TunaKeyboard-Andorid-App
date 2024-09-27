@@ -90,12 +90,12 @@ fun TunaHomeScreen() = FlorisScreen {
                 )
                 MintNavButton(
                     onClick = {navController.navigate(Routes.TunaKeyboard.Fitting)} ,
-                    text = "Fitting Start",
+                    text = "초기 셋팅",
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 BlackNavButton(
                     onClick = {navController.navigate(Routes.TunaKeyboard.Setting)} ,
-                    text = "Individual key Setting",
+                    text = "커스터마이징",
                 )
             }
 

@@ -1,9 +1,11 @@
 package dev.patrickgold.florisboard.app.tunaKeyboard
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,58 +24,50 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.app.florisPreferenceModel
+import dev.patrickgold.florisboard.ime.text.keyboard.CustomFlayData
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.compose.FlorisOutlinedBox
 import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.observeAsTransformingState
-import dev.patrickgold.florisboard.lib.util.PreferenceUtils.getIndexFromPos
-import dev.patrickgold.florisboard.lib.util.PreferenceUtils.saveKeyTilesToPreferences
 
 @Composable
 fun KeySettingScreen() = FlorisScreen {
     title = "Tuna Setting"
     previewFieldVisible = true
 
+    val minW = 0.3
+    val maxW = 2.0
+    val stepIncrement = 15.0
+    var width by remember { mutableStateOf(1.56f) }
+    var height by remember { mutableStateOf(140.0f) }
+
     val prefs by florisPreferenceModel()
+    val tempData = prefs.customFlayValues.tempData
+    val customFlayWidthFactor = prefs.customFlayValues.customFlayWidthFactor
+
+    if (tempData.get() == tempData.default && tempData.get() != customFlayWidthFactor.get()) {
+        tempData.set(customFlayWidthFactor.get())
+    }
+
     val context = LocalContext.current
     val keyboardManager by context.keyboardManager()
     val evaluator by keyboardManager.activeEvaluator.collectAsState()
     val keyboard = evaluator.keyboard as TextKeyboard
-
-    //TODO: 키가 중심점을 벗어나서 설정되지 않게하기
-    val minH = 100.0
-    val maxH = 260.0
-    val minW = 30.0
-    val maxW = 100.0
-
-    val stepIncrement = 5.0
-
-    var width by remember { mutableStateOf(140.0f) }
-    var height by remember { mutableStateOf(140.0f) }
-    var previousWidth by remember { mutableStateOf(0f) }
-    var previousHeight by remember { mutableStateOf(0f) }
-
     val keyLabel by prefs.touchedKey.keyLabel.observeAsTransformingState { it }
     val touchX by prefs.touchedKey.posX.observeAsTransformingState { it }
     val touchY by prefs.touchedKey.posY.observeAsTransformingState { it }
-
-    val (rowIndex, keyIndex) = getIndexFromPos(touchX, touchY)
     val key = keyboard.getKeyForPos(touchX, touchY)
-    var centerX:Float = 0f
-    var centerY:Float = 0f
 
     if (key != null) {
-        width = key.touchBounds.width
         height = key.touchBounds.height
-
-        val (x, y) = key.touchBounds.center
-        centerX = x
-        centerY = y
+        width = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code) ?: key.flayWidthFactor
     }
+
     content {
         Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp),
@@ -81,49 +75,45 @@ fun KeySettingScreen() = FlorisScreen {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
+                modifier = Modifier.fillMaxWidth().padding(10.dp),
                 text = "Chose Key and Fix!",
                 fontFamily = TrainOne,
-                fontSize = 24.sp
-            )
-            Spacer(modifier = Modifier.weight(10f))
+                fontSize = 30.sp,
+                style = MaterialTheme.typography.displaySmall.copy(textAlign = TextAlign.Center),
+                )
+            Spacer(modifier = Modifier.size(20.dp))
             FlorisOutlinedBox(
                 modifier = Modifier.size(80.dp).padding(vertical = 8.dp, horizontal = 16.dp),
             ) {
-                Text(
-                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 4.dp),
-                    text = keyLabel,
-                    style = MaterialTheme.typography.displaySmall,
-                )
-                Spacer(modifier = Modifier.weight(1f))
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = keyLabel,
+                        style = MaterialTheme.typography.displaySmall,
+                    )
+                }
+                Spacer(modifier = Modifier.size(10.dp))
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text("너비 $width")
+                val widthNumber: Float = width ?: 1.56f
+                Text("너비 ${"%.1f".format(widthNumber)}")
                 Text("너비를 설정합니다.")
             }
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.size(10.dp))
             Slider(
                 value = width,
                 valueRange = minW.toFloat()..maxW.toFloat(),
-                steps = ((maxW.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
+                steps = ((maxW.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt(),
                 onValueChange = { newValue ->
-                    previousWidth = width
                     width = newValue
-                    key?.touchBounds?.width = newValue
+                    CustomFlayData.setCustomFlayWidthFactor(key!!.computedData.code, newValue)
                 },
-                onValueChangeFinished = {
-                    key?.let {
-                        if (centerX != 0f) {
-                            val newMarginH = width / 12f
-
-                            it.touchBounds.left = centerX - (width / 2) - newMarginH
-                            it.touchBounds.right = centerX + (width / 2) + newMarginH
-                        }
-                        saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
-                    }
-                },
+                onValueChangeFinished = { CustomFlayData.saveToPreferences() },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,
                     activeTrackColor = MaterialTheme.colorScheme.primary,
@@ -135,55 +125,56 @@ fun KeySettingScreen() = FlorisScreen {
                 ),
                 modifier = Modifier.fillMaxWidth(),
             )
-            Spacer(modifier = Modifier.weight(1f))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("높이 $height")
-                Text("높이를 설정합니다.")
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            Slider(
-                value = height,
-                valueRange = minH.toFloat()..maxH.toFloat(),
-                steps = ((maxH.toFloat() - minH.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
-                onValueChange = { newValue ->
-                    previousHeight = height
-                    height = newValue
-                    key?.touchBounds?.height = newValue
-                },
-                onValueChangeFinished = {
-                    key?.let {
-                        if (centerY != 0f) {
-                            val newMarginV = height / 12f
-
-                            it.touchBounds.top = centerY - (height / 2) - newMarginV
-                            it.touchBounds.bottom = centerY + (height / 2) + newMarginV
-                        }
-                        saveKeyTilesToPreferences(rowIndex, keyIndex, it.touchBounds)
-                    }
-                },
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    activeTickColor = Color.Transparent,
-                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = SliderDefaults.colors().inactiveTrackColor.alpha,
-                    ),
-                    inactiveTickColor = Color.Transparent,
-                ),
-            )
+            Spacer(modifier = Modifier.size(10.dp))
+//            Row(
+//                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+//                horizontalArrangement = Arrangement.SpaceBetween,
+//            ) {
+//                Text("높이 $height")
+//                Text("높이를 설정합니다.")
+//            }
+//            Spacer(modifier = Modifier.weight(1f))
+//            Slider(
+//                value = height,
+//                valueRange = minH.toFloat()..maxH.toFloat(),
+//                steps = ((maxH.toFloat() - minH.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
+//                onValueChange = { newValue -> /* TODO: 높이 변화에 따른 로직 추가 가능 */ },
+//                onValueChangeFinished = { /* TODO: 높이 변화에 따른 로직 추가 가능 */ },
+//                colors = SliderDefaults.colors(
+//                    thumbColor = MaterialTheme.colorScheme.primary,
+//                    activeTrackColor = MaterialTheme.colorScheme.primary,
+//                    activeTickColor = Color.Transparent,
+//                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
+//                        alpha = SliderDefaults.colors().inactiveTrackColor.alpha,
+//                    ),
+//                    inactiveTickColor = Color.Transparent,
+//                ),
+//            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 // TODO: 초기화 버튼 구현
                 TextButton(onClick = {
-//                    prefs.keyboard.hasKeyTilesAllSettled.set(false)
-//                    prefs.keyboard.keyTilesInfo.reset()
+                    if (tempData.get() != customFlayWidthFactor.get()) {
+                        customFlayWidthFactor.set(tempData.get())
+                        CustomFlayData.rollback()
+                    }
+                    tempData.reset()
+                }) {
+                    Text("되돌리기")
+                }
+                TextButton(onClick = {
+                    customFlayWidthFactor.reset()
+                    tempData.reset()
+                    CustomFlayData.resetAllCustomFlay()
                 }) {
                     Text("초기화")
+                }
+                TextButton(onClick = {
+                    tempData.reset()
+                }) {
+                    Text("저장하기")
                 }
             }
         }
