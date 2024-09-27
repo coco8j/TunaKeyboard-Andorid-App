@@ -518,15 +518,6 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             key = "keyboard__incognito_indicator",
             default = IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD,
         )
-        // TODO(Notification): custom value
-        val hasKeyTilesAllSettled = boolean(
-            key = "keyboard__has_key_tiles_all_settled",
-            default = false,
-        )
-        val keyTilesInfo = string(
-            key = "keyboard__key_tiles_info",
-            default = "",
-        )
 
         fun keyHintConfiguration(): KeyHintConfiguration {
             return KeyHintConfiguration(
