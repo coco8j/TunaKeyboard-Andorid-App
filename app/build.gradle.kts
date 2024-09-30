@@ -218,7 +218,9 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
 
+//    implementation(libs.litert)
     implementation("com.google.code.gson:gson:2.9.0")
+    implementation (libs.tensorflow.lite)
 }
 
 fun getGitCommitHash(short: Boolean = false): String {
