@@ -1,5 +1,6 @@
 package dev.patrickgold.florisboard.app.tunaKeyboard
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,8 +49,11 @@ class TestCharacter (text: String, isCorrect: Boolean = false) {
         }
     }
 }
+//val alphatbet = "abcdefghijklmnopqrstuvwxyz"
+//val sampleString = alphatbet.map { it.toString().repeat(10) }.joinToString("")
 
 val sampleString = "the quick brown fox jumps over the lazy dog"
+
 class TestString () {
     val testString: List<TestCharacter> = sampleString.map { TestCharacter(it.toString()) }
     private var index: Int = 0
@@ -143,18 +148,22 @@ fun FittingScreen() = FlorisScreen {
 
                 if (targetCharacter.text == "TEST_END") {
                     //TODO: hasPreset 미사용중
-                    prefs.deepLearning.hasPreset.set(true)
+//                    prefs.deepLearning.hasPreset.set(true)
 
                     CustomElevatedButton(
                         onClick = {
                             // TODO: 머신러닝에 데이터 전달하여 학습시키기,
-                            navController.navigate(Routes.TunaKeyboard.Home) },
+                            navController.navigate(Routes.TunaKeyboard.Home)
+                            prefs.deepLearning.hasPreset.set(true)
+                                  },
                         text = "홈으로"
                     )
                 } else {
                     if (key != null) {
-                        KeyHistoryManager.addToHistory(key!!, Coordinate(touchX, touchY))
+                        KeyHistoryManager.addToHistoryAverageValue(key!!, Coordinate(touchX, touchY))
+                        KeyHistoryManager.putVisibleBounds(key!!)
 
+                        Log.v("checkValue", "key: ${key!!.label}")
                         if (targetCharacter.text == key!!.label ||
                             (targetCharacter.text == " " && key!!.computedData.code == KeyCode.SPACE)) {
                             targetCharacter.correct()

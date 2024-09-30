@@ -566,6 +566,10 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
             key = "touched_key__pos_y",
             default = 0f,
         )
+        val frequencyCoordinates = string(
+            key = "touched_key__frequency_coordinates",
+            default = "",
+        )
     }
 
     val localization = Localization()

@@ -31,6 +31,7 @@ import dev.patrickgold.florisboard.lib.compose.FlorisErrorCard
 import dev.patrickgold.florisboard.lib.compose.FlorisScreen
 import dev.patrickgold.florisboard.lib.compose.FlorisWarningCard
 import dev.patrickgold.florisboard.lib.compose.stringRes
+import dev.patrickgold.florisboard.lib.observeAsTransformingState
 import dev.patrickgold.florisboard.lib.util.InputMethodUtils
 
 val TrainOne = FontFamily(
@@ -49,6 +50,7 @@ fun TunaHomeScreen() = FlorisScreen {
 
     val prefs by florisPreferenceModel()
     val hasPreset = prefs.deepLearning.hasPreset.get()
+    val hasFitted = prefs.coordinates.hasFitted.get()
 
     val navController = LocalNavController.current
     val context = LocalContext.current
@@ -80,7 +82,7 @@ fun TunaHomeScreen() = FlorisScreen {
                     modifier = Modifier.padding(50.dp),
                     text = "Tuna Keyboard",
                     fontFamily = TrainOne,
-                    fontSize = 30.sp
+                    fontSize = 36.sp
                 )
                 Image(
                     painter = painterResource(id = R.drawable.logo_tuna_keyboard),
@@ -93,10 +95,12 @@ fun TunaHomeScreen() = FlorisScreen {
                     text = "초기 셋팅",
                 )
                 Spacer(modifier = Modifier.size(10.dp))
-                BlackNavButton(
-                    onClick = {navController.navigate(Routes.TunaKeyboard.Setting)} ,
-                    text = "커스터마이징",
-                )
+                if (hasFitted) {
+                    BlackNavButton(
+                        onClick = { navController.navigate(Routes.TunaKeyboard.Setting) },
+                        text = "커스터마이징",
+                    )
+                }
             }
 
     }

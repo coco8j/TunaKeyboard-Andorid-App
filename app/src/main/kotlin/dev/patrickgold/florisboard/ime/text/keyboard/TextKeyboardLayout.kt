@@ -91,6 +91,7 @@ import dev.patrickgold.florisboard.lib.devtools.LogTopic
 import dev.patrickgold.florisboard.lib.devtools.flogDebug
 import dev.patrickgold.florisboard.lib.observeAsTransformingState
 import dev.patrickgold.florisboard.lib.toIntOffset
+import dev.patrickgold.florisboard.lib.util.updateFrequencyCoordinates
 import dev.patrickgold.jetpref.datastore.model.observeAsState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onFailure
@@ -224,6 +225,9 @@ fun TextKeyboardLayout(
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
         val customFlayValue by prefs.customFlayValues.customFlayWidthFactor.observeAsTransformingState { it }
 
+        val hasFitted by prefs.deepLearning.hasPreset.observeAsTransformingState { it }
+        updateFrequencyCoordinates(context)
+
         LaunchedEffect(customFlayValue) {
             /* This Trigger recompose keyboard layout */
         }
@@ -253,7 +257,7 @@ fun TextKeyboardLayout(
         }
 
         desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard)
+        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard, hasFitted)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
         val popupUiController = rememberPopupUiController(
@@ -330,9 +334,6 @@ fun TextKeyboardLayout(
             if (!isActive) break
             controller.onTouchEventInternal(event)
             event.recycle()
-
-            controller.fixKeyTilesData()
-            Log.v("checkValue", "Saved key tiles data!!!!!!!!!!")
         }
 
     }
@@ -421,21 +422,22 @@ private fun TextKeyButton(
                 isPressed = key.isPressed,
             )
             val hintFontSize = keyHintStyle.fontSize.spSize() safeTimes fontSizeMultiplier
-// 이거 뭔지 알아야 함
-            val test = (key.visibleBounds.width / 12f)
-            if (test < 0f) {
-                val label = key.label
-                val keycode = key.computedData.code
-                Log.v("checkValue", "padding: $test label: $label keycode: $keycode")
-            }
-
             Text(
                 modifier = Modifier
                     .wrapContentSize()
                     .align(if (isTelpadKey) BiasAlignment(0.5f, 0f) else Alignment.TopEnd)
                     .snyggBackground(context, keyHintStyle)
-                    .padding(horizontal = (key.visibleBounds.width / 12f).toDp()),
-                    text = hintedLabel,
+                    .padding(
+                        horizontal = key.visibleBounds.width
+                            .let { value ->
+                                if (value / 12f < 0) {
+                                    0.dp
+                                } else {
+                                    (value / 12f).toDp()
+                                }
+                            }
+                    ),
+                text = hintedLabel,
                 color = keyHintStyle.foreground.solidColor(context),
                 fontFamily = FontFamily.Monospace,
                 fontSize = hintFontSize,
@@ -1060,14 +1062,6 @@ private class TextKeyboardLayoutController(
 
         override fun toString(): String {
             return "${TouchPointer::class.simpleName} { id=$id, index=$index, initialKey=$initialKey, activeKey=$activeKey }"
-        }
-    }
-
-     fun fixKeyTilesData():Unit {
-         val prefs by florisPreferenceModel()
-        val hasKeyTilesAllSettled = prefs.keyboard.hasKeyTilesAllSettled.get()
-        if (!hasKeyTilesAllSettled) {
-            prefs.keyboard.hasKeyTilesAllSettled.set(true)
         }
     }
 }

@@ -16,10 +16,13 @@
 
 package dev.patrickgold.florisboard.ime.text.keyboard
 
+import dev.patrickgold.florisboard.app.tunaKeyboard.Coordinate
 import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
 import dev.patrickgold.florisboard.ime.popup.PopupMapping
+import dev.patrickgold.florisboard.lib.util.calculateNewWidthFactor
+import dev.patrickgold.florisboard.lib.util.getFrequencyCoordinates
 import kotlin.math.abs
 
 class TextKeyboard(
@@ -48,23 +51,18 @@ class TextKeyboard(
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
+        hasFitted: Boolean,
     ) {
         if (arrangement.isEmpty()) return
-
         val desiredTouchBounds = desiredKey.touchBounds
         val desiredVisibleBounds = desiredKey.visibleBounds
-
         if (desiredTouchBounds.isEmpty() || desiredVisibleBounds.isEmpty()) return
         if (keyboardWidth.isNaN() || keyboardHeight.isNaN()) return
-
         val rowMarginH = abs(desiredTouchBounds.width - desiredVisibleBounds.width)
-        // rowMarginV : 행과 행 사이의 여백. 줄이 4개라면 행간은 3개. 각 행간에 대한 여백.
         val rowMarginV = (keyboardHeight - desiredTouchBounds.height * rowCount.toFloat()) / (rowCount - 1).coerceAtLeast(1).toFloat()
 
         for ((r, row) in rows().withIndex()) {
-            // 기본 행의 시작 높이 (bottom 값 설정) : (터치영역 높이 + 행간 여백) * 행 인덱스
             val posY = (desiredTouchBounds.height + rowMarginV) * r
-            // 한 줄에 가능한 넓이 비율 = 가로 넓이 (마진은 양쪽에 들어가야 하나, 양쪽 여백을 미리 주고 시작) / 1개의 키 넓이 = 10개가 들어간 비율
             val availableWidth = (keyboardWidth - rowMarginH) / desiredTouchBounds.width
 
             var requestedWidth = 0.0f
@@ -72,9 +70,18 @@ class TextKeyboard(
             var growSum = 0.0f
 
             for (key in row) {
-                val customValue = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code)
-                if (customValue != null) {
-                   key.flayWidthFactor = customValue
+                if (hasFitted) {
+                    val frequencyCoordinates = getFrequencyCoordinates()
+                    val currentCoordinate: Coordinate? = frequencyCoordinates.get(key.computedData.code)?.get(0)
+                    if (currentCoordinate != null) {
+                        val customValue = calculateNewWidthFactor(key, currentCoordinate)
+//                      val customValue = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code)
+                        if (customValue != null) {
+                            key.flayWidthFactor = customValue
+//                        } else if (key.flayShrink == 0.0f) {
+//                            key.flayShrink = 1.0f
+                        }
+                    }
                 }
 
                 requestedWidth += key.flayWidthFactor
@@ -129,7 +136,6 @@ class TextKeyboard(
                 }
             } else {
                 // Requested size too big, must shrink.
-
                 val clippingWidth = requestedWidth - availableWidth
                 var posX = rowMarginH / 2.0f
 

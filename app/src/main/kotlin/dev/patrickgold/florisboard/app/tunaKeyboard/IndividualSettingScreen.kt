@@ -50,6 +50,7 @@ fun KeySettingScreen() = FlorisScreen {
     val tempData = prefs.customFlayValues.tempData
     val customFlayWidthFactor = prefs.customFlayValues.customFlayWidthFactor
 
+
     if (tempData.get() == tempData.default && tempData.get() != customFlayWidthFactor.get()) {
         tempData.set(customFlayWidthFactor.get())
     }
@@ -62,7 +63,6 @@ fun KeySettingScreen() = FlorisScreen {
     val touchX by prefs.touchedKey.posX.observeAsTransformingState { it }
     val touchY by prefs.touchedKey.posY.observeAsTransformingState { it }
     val key = keyboard.getKeyForPos(touchX, touchY)
-
     if (key != null) {
         height = key.touchBounds.height
         width = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code) ?: key.flayWidthFactor
@@ -168,6 +168,7 @@ fun KeySettingScreen() = FlorisScreen {
                     customFlayWidthFactor.reset()
                     tempData.reset()
                     CustomFlayData.resetAllCustomFlay()
+                    prefs.deepLearning.hasPreset.set(false)
                 }) {
                     Text("초기화")
                 }
