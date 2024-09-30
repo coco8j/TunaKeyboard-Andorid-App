@@ -51,10 +51,10 @@ import java.lang.ref.WeakReference
  * Global weak reference for the [FlorisApplication] class. This is needed as in certain scenarios an application
  * reference is needed, but the Android framework hasn't finished setting up
  */
-private var FlorisApplicationReference = WeakReference<FlorisApplication?>(null)
+private var TunaApplicationReference = WeakReference<TunaApplication?>(null)
 
 @Suppress("unused")
-class FlorisApplication : Application() {
+class TunaApplication : Application() {
     companion object {
         init {
             try {
@@ -80,7 +80,7 @@ class FlorisApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        FlorisApplicationReference = WeakReference(this)
+        TunaApplicationReference = WeakReference(this)
         try {
             JetPref.configure(saveIntervalMs = 500)
             Flog.install(
@@ -131,14 +131,14 @@ class FlorisApplication : Application() {
     }
 }
 
-private tailrec fun Context.florisApplication(): FlorisApplication {
+private tailrec fun Context.florisApplication(): TunaApplication {
     return when (this) {
-        is FlorisApplication -> this
+        is TunaApplication -> this
         is ContextWrapper -> when {
             this.baseContext != null -> this.baseContext.florisApplication()
-            else -> FlorisApplicationReference.get()!!
+            else -> TunaApplicationReference.get()!!
         }
-        else -> tryOrNull { this.applicationContext as FlorisApplication } ?: FlorisApplicationReference.get()!!
+        else -> tryOrNull { this.applicationContext as TunaApplication } ?: TunaApplicationReference.get()!!
     }
 }
 
