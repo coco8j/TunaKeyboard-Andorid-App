@@ -15,6 +15,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,7 +29,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.app.florisPreferenceModel
-import dev.patrickgold.florisboard.ime.text.keyboard.CustomFlayData
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.compose.FlorisOutlinedBox
@@ -47,25 +47,26 @@ fun KeySettingScreen() = FlorisScreen {
     var height by remember { mutableStateOf(140.0f) }
 
     val prefs by florisPreferenceModel()
-    val tempData = prefs.customFlayValues.tempData
     val customFlayWidthFactor = prefs.customFlayValues.customFlayWidthFactor
-
-
-    if (tempData.get() == tempData.default && tempData.get() != customFlayWidthFactor.get()) {
-        tempData.set(customFlayWidthFactor.get())
-    }
+    var tempData: String = remember { customFlayWidthFactor.get() }
 
     val context = LocalContext.current
     val keyboardManager by context.keyboardManager()
     val evaluator by keyboardManager.activeEvaluator.collectAsState()
     val keyboard = evaluator.keyboard as TextKeyboard
-    val keyLabel by prefs.touchedKey.keyLabel.observeAsTransformingState { it }
+    var keyLabel by remember { mutableStateOf(" ") }
     val touchX by prefs.touchedKey.posX.observeAsTransformingState { it }
     val touchY by prefs.touchedKey.posY.observeAsTransformingState { it }
     val key = keyboard.getKeyForPos(touchX, touchY)
+
     if (key != null) {
         height = key.touchBounds.height
-        width = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code) ?: key.flayWidthFactor
+        width = key.flayWidthFactor
+    }
+
+    LaunchedEffect(touchX, touchY) {
+        val touchedKey = keyboard.getKeyForPos(touchX, touchY)
+        keyLabel = touchedKey?.label ?: " "
     }
 
     content {
@@ -111,9 +112,9 @@ fun KeySettingScreen() = FlorisScreen {
                 steps = ((maxW.toFloat() - minW.toFloat()) / stepIncrement.toFloat()).toInt(),
                 onValueChange = { newValue ->
                     width = newValue
-                    CustomFlayData.setCustomFlayWidthFactor(key!!.computedData.code, newValue)
+                    CustomFactor.setFlayWidth(key!!.computedData.code, newValue)
                 },
-                onValueChangeFinished = { CustomFlayData.saveToPreferences() },
+                onValueChangeFinished = { CustomFactor.updateAllFlayData() },
                 colors = SliderDefaults.colors(
                     thumbColor = MaterialTheme.colorScheme.primary,
                     activeTrackColor = MaterialTheme.colorScheme.primary,
@@ -126,54 +127,26 @@ fun KeySettingScreen() = FlorisScreen {
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.size(10.dp))
-//            Row(
-//                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//            ) {
-//                Text("높이 $height")
-//                Text("높이를 설정합니다.")
-//            }
-//            Spacer(modifier = Modifier.weight(1f))
-//            Slider(
-//                value = height,
-//                valueRange = minH.toFloat()..maxH.toFloat(),
-//                steps = ((maxH.toFloat() - minH.toFloat()) / stepIncrement.toFloat()).toInt() - 1,
-//                onValueChange = { newValue -> /* TODO: 높이 변화에 따른 로직 추가 가능 */ },
-//                onValueChangeFinished = { /* TODO: 높이 변화에 따른 로직 추가 가능 */ },
-//                colors = SliderDefaults.colors(
-//                    thumbColor = MaterialTheme.colorScheme.primary,
-//                    activeTrackColor = MaterialTheme.colorScheme.primary,
-//                    activeTickColor = Color.Transparent,
-//                    inactiveTrackColor = MaterialTheme.colorScheme.onSurface.copy(
-//                        alpha = SliderDefaults.colors().inactiveTrackColor.alpha,
-//                    ),
-//                    inactiveTickColor = Color.Transparent,
-//                ),
-//            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                // TODO: 초기화 버튼 구현
                 TextButton(onClick = {
-                    if (tempData.get() != customFlayWidthFactor.get()) {
-                        customFlayWidthFactor.set(tempData.get())
-                        CustomFlayData.rollback()
+                    if (tempData != customFlayWidthFactor.get()) {
+                        customFlayWidthFactor.set(tempData)
+                        CustomFactor.refresh()
                     }
-                    tempData.reset()
                 }) {
                     Text("되돌리기")
                 }
                 TextButton(onClick = {
-                    customFlayWidthFactor.reset()
-                    tempData.reset()
-                    CustomFlayData.resetAllCustomFlay()
+                    //TODO: 완전 초기화 로직적용. 유저에게 경고 띄우기
                     prefs.deepLearning.hasPreset.set(false)
                 }) {
                     Text("초기화")
                 }
                 TextButton(onClick = {
-                    tempData.reset()
+                    tempData = customFlayWidthFactor.get()
                 }) {
                     Text("저장하기")
                 }

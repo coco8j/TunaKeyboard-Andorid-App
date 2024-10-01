@@ -16,7 +16,6 @@
 
 package dev.patrickgold.florisboard.ime.text.keyboard
 
-import dev.patrickgold.florisboard.app.tunaKeyboard.Coordinate
 import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
@@ -51,13 +50,15 @@ class TextKeyboard(
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
-        hasFitted: Boolean,
+        hasPreset: Boolean,
     ) {
         if (arrangement.isEmpty()) return
         val desiredTouchBounds = desiredKey.touchBounds
         val desiredVisibleBounds = desiredKey.visibleBounds
+
         if (desiredTouchBounds.isEmpty() || desiredVisibleBounds.isEmpty()) return
         if (keyboardWidth.isNaN() || keyboardHeight.isNaN()) return
+
         val rowMarginH = abs(desiredTouchBounds.width - desiredVisibleBounds.width)
         val rowMarginV = (keyboardHeight - desiredTouchBounds.height * rowCount.toFloat()) / (rowCount - 1).coerceAtLeast(1).toFloat()
 
@@ -69,17 +70,16 @@ class TextKeyboard(
             var shrinkSum = 0.0f
             var growSum = 0.0f
 
+            val frequencyCoordinates = getFrequencyCoordinates()
             for (key in row) {
-                if (hasFitted) {
-                    val frequencyCoordinates = getFrequencyCoordinates()
-                    val currentCoordinate: Coordinate? = frequencyCoordinates.get(key.computedData.code)?.get(0)
-                    if (currentCoordinate != null) {
-                        val customValue = calculateNewWidthFactor(key, currentCoordinate)
-//                      val customValue = CustomFlayData.getCustomFlayWidthFactor(key.computedData.code)
+                if (hasPreset) {
+                    val keycode = key.computedData.code
+                    val frequentTouchCoordinates = frequencyCoordinates.get(keycode)?.get(0)
+
+                    if (frequentTouchCoordinates != null) {
+                        val customValue = calculateNewWidthFactor(key, frequentTouchCoordinates)
                         if (customValue != null) {
-                            key.flayWidthFactor = customValue
-//                        } else if (key.flayShrink == 0.0f) {
-//                            key.flayShrink = 1.0f
+                                key.flayWidthFactor = customValue
                         }
                     }
                 }

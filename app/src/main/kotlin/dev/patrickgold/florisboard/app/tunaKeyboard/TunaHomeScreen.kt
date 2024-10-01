@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.R
@@ -49,8 +50,7 @@ fun TunaHomeScreen() = FlorisScreen {
     previewFieldVisible = true
 
     val prefs by florisPreferenceModel()
-    val hasPreset = prefs.deepLearning.hasPreset.get()
-    val hasFitted = prefs.coordinates.hasFitted.get()
+    val hasPreset by prefs.deepLearning.hasPreset.observeAsTransformingState { it }
 
     val navController = LocalNavController.current
     val context = LocalContext.current
@@ -73,36 +73,37 @@ fun TunaHomeScreen() = FlorisScreen {
                 onClick = { InputMethodUtils.showImePicker(context) },
             )
         }
-            Column(
-                modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    modifier = Modifier.padding(50.dp),
-                    text = "Tuna Keyboard",
-                    fontFamily = TrainOne,
-                    fontSize = 36.sp
+        Column(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(50.dp),
+                text = "Tuna Keyboard",
+                fontFamily = TrainOne,
+                fontSize = 36.sp,
+                textAlign = TextAlign.Center
+            )
+            Image(
+                painter = painterResource(id = R.drawable.logo_tuna_keyboard),
+                contentDescription = null,
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier.fillMaxWidth(0.5f)
+            )
+            Spacer(modifier = Modifier.size(20.dp))
+            MintNavButton(
+                onClick = {navController.navigate(Routes.TunaKeyboard.Fitting)} ,
+                text = "시작하기",
                 )
-                Image(
-                    painter = painterResource(id = R.drawable.logo_tuna_keyboard),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxWidth(0.5f)
-                )
-                MintNavButton(
-                    onClick = {navController.navigate(Routes.TunaKeyboard.Fitting)} ,
-                    text = "초기 셋팅",
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                if (hasFitted) {
-                    BlackNavButton(
-                        onClick = { navController.navigate(Routes.TunaKeyboard.Setting) },
-                        text = "커스터마이징",
+            Spacer(modifier = Modifier.size(10.dp))
+            if (hasPreset) {
+                BlackNavButton(
+                    onClick = { navController.navigate(Routes.TunaKeyboard.Setting) },
+                    text = "커스터마이징",
                     )
-                }
             }
-
+        }
     }
 }
 

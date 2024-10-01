@@ -1,14 +1,13 @@
 package dev.patrickgold.florisboard.lib.util
 
 import android.content.Context
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dev.patrickgold.florisboard.app.florisPreferenceModel
 import dev.patrickgold.florisboard.app.tunaKeyboard.Coordinate
+import dev.patrickgold.florisboard.app.tunaKeyboard.CustomFactor
 import dev.patrickgold.florisboard.app.tunaKeyboard.KeyHistoryManager
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKey
-import dev.patrickgold.jetpref.datastore.model.PreferenceData
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.math.abs
@@ -36,6 +35,12 @@ fun calculateNewWidthFactor(key: TextKey, commonTouchCoordinate: Coordinate): Fl
     val keyRight = visibleBounds.right
     if (keyLeft < 0 || keyRight < 0) return null
 
+    val keycode = key.computedData.code
+    val cachedFlayWidth = CustomFactor.getFlayWidth(keycode)
+    if (cachedFlayWidth != null) {
+        return cachedFlayWidth
+    }
+
     val keyCenterX = (keyRight + keyLeft) / 2
     val originalWidth = keyRight - keyLeft
 
@@ -43,12 +48,15 @@ fun calculateNewWidthFactor(key: TextKey, commonTouchCoordinate: Coordinate): Fl
     val commonTouchX = commonTouchCoordinate.x
 
     val newWidth: Float = abs(keyCenterX - commonTouchX) * 2
-    val newWidthFactor = ( standardWidth * newWidth) / originalWidth
-    Log.v("checkValue", "(안) 새로운 값 체크: $newWidthFactor")
+    val newWidthFactor: Float = ( standardWidth * newWidth) / originalWidth
 
-    return if (newWidthFactor > 1.2F) newWidthFactor else null
+    if (newWidthFactor > 1.2F) {
+        CustomFactor.setFlayWidth(keycode, newWidthFactor)
+        return newWidthFactor
+    } else {
+        return null
+    }
 }
-
 
 fun updateFrequencyCoordinates(context: Context): Unit {
     val prefs by florisPreferenceModel()
@@ -71,7 +79,7 @@ fun getFrequencyCoordinates(): MutableMap<Int, MutableList<Coordinate>> {
         val frequencyCoordinates = prefs.touchedKey.frequencyCoordinates
 
         val gson = Gson()
-        // TODO: 머신 러닝 출력값이 최종적으로 이 형태라면 좀 더 간결하게 쓸 수 있음. TypeToken<MutableMap<Int, Coordinate>>
+        // TODO: 머신 러닝 출력값을 TypeToken<MutableMap<Int, Coordinate>> 형태가 되도록 리팩토링
         val type = object : TypeToken<MutableMap<Int, MutableList<Coordinate>>>() {}.type
 
         return gson.fromJson(frequencyCoordinates.get(), type)
@@ -79,10 +87,4 @@ fun getFrequencyCoordinates(): MutableMap<Int, MutableList<Coordinate>> {
         e.printStackTrace()
     }
     return mutableMapOf()
-}
-
-fun setAsJson(objectData: Any, prefsId: PreferenceData<String>): Unit {
-    val gson = Gson()
-    val jsonString = gson.toJson(objectData)
-    prefsId.set(jsonString)
 }

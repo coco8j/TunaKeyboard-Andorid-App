@@ -18,7 +18,6 @@ package dev.patrickgold.florisboard.ime.text.keyboard
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import androidx.compose.foundation.border
@@ -225,15 +224,14 @@ fun TextKeyboardLayout(
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
         val customFlayValue by prefs.customFlayValues.customFlayWidthFactor.observeAsTransformingState { it }
 
-        val hasFitted by prefs.deepLearning.hasPreset.observeAsTransformingState { it }
+        val hasPreset by prefs.deepLearning.hasPreset.observeAsTransformingState { it }
         updateFrequencyCoordinates(context)
 
-        LaunchedEffect(customFlayValue) {
+        LaunchedEffect(customFlayValue, hasPreset) {
             /* This Trigger recompose keyboard layout */
         }
 
         val desiredKey = remember { TextKey(data = TextKeyData.UNSPECIFIED) }
-
         val keyboardWidth = constraints.maxWidth.toFloat()
         val keyboardHeight = constraints.maxHeight.toFloat()
 
@@ -257,7 +255,7 @@ fun TextKeyboardLayout(
         }
 
         desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard, hasFitted)
+        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard, hasPreset)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
         val popupUiController = rememberPopupUiController(
