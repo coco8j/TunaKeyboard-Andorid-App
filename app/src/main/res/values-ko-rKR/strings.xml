@@ -326,6 +326,14 @@
     <string name="setup__select_ime__title">{app_name} 선택</string>
     <string name="setup__select_ime__description">{app_name} 키보드를 켰어요. 키보드를 제대로 사용하기 위해서는 입력 방법 선택 창에서 {app_name} 키보드를 선택해야 해요!</string>
     <string name="setup__select_ime__switch_keyboard_btn">입력 방법 전환</string>
+
+    <string name="setup__grant_notification_permission__title">충돌 보고서 알림 허용</string>
+    <string name="setup__grant_notification_permission__description">Android 13 이상부터 앱은 다음을 수행할 수 있는 권한을 요청해야 합니다.
+        권한을 요청해야 합니다. Tuna 키보드에서는 충돌 발생 시 충돌 보고서 화면을 여는 데만 사용됩니다.
+        이 권한은 시스템 설정에서 언제든지 변경할 수 있습니다.
+    </string>
+    <string name="setup__grant_notification_permission__btn">허용하기</string>
+
     <string name="setup__finish_up__title">마무리</string>
     <string name="setup__finish_up__description_p1">이제 {app_name} 키보드를 마음껏 꾸미고 써볼 수 있어요.</string>
     <string name="setup__finish_up__description_p2">문제가 생기거나, 버그를 발견하거나, 제안할 내용이 있다면 정보 화면에서 프로젝트 리포지터리에 방문해 주세요!</string>
