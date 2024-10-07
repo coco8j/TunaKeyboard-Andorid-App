@@ -151,10 +151,6 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
     // TODO(Notification): custom value
     val coordinates = Coordinates()
     inner class Coordinates {
-        val hasFitted = boolean(
-            key = "coordinates__has_fitted",
-            default = false,
-        )
         val history = string(
             key = "coordinates__history",
             default = "",
@@ -178,12 +174,24 @@ class AppPrefs : PreferenceModel("florisboard-app-prefs") {
         )
     }
 
-    // TODO(Notification): custom value
+    // TODO(Notification): custom value 딥러닝 관련
     val deepLearning = DeepLearning()
     inner class DeepLearning {
-        val hasPreset = boolean(
-            key = "deep_learning__has_presetted",
+        val hasModelInit = boolean(
+            key = "deep_learning__has_model_init",
             default = false,
+        )
+        val hasPredict = boolean(
+            key = "deep_learning__has_predict",
+            default = false,
+        )
+        val original = string(
+            key = "deep_learning__original",
+            default = "",
+        )
+        val history = string(
+            key = "deep_learning__history",
+            default = "",
         )
     }
 

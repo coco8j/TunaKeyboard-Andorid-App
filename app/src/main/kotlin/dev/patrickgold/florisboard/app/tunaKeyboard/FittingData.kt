@@ -3,6 +3,7 @@ package dev.patrickgold.florisboard.app.tunaKeyboard
 import android.os.Environment
 import android.util.Log
 import com.google.gson.Gson
+import dev.patrickgold.florisboard.app.florisPreferenceModel
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKey
 import dev.patrickgold.florisboard.lib.FlorisRect
 import java.io.File
@@ -10,8 +11,14 @@ import java.io.File
 data class Coordinate(val x: Float, val y: Float)
 
 object KeyHistoryManager {
-    private val InitialKeyLayoutValue: MutableMap<Int, FlorisRect> = mutableMapOf()
+    val prefs by florisPreferenceModel()
+    private var hasModelInit: Boolean = false
+    private val InitialLayoutInfo: MutableMap<Int, FlorisRect> = mutableMapOf()
     private val keyHistoryData: MutableMap<Int, MutableList<Coordinate>> = mutableMapOf()
+
+    init {
+        hasModelInit = prefs.deepLearning.hasModelInit.get()
+    }
 
     fun addToHistory(key: TextKey, coordinate: Coordinate): Unit {
         val keyCode = key.computedData.code
@@ -20,10 +27,28 @@ object KeyHistoryManager {
         coordinates.add(coordinate)
     }
 
+    fun initializeLayoutInfo(key: TextKey?): Unit {
+        if (key == null) return
+
+        val keyLeft = key.visibleBounds.left
+        val keyRight = key.visibleBounds.right
+        if (keyLeft < 0 || keyRight < 0) return
+
+        var keyCode = key.computedData.code
+        if (keyCode in 65..90) {
+            keyCode += 32
+        }
+
+        if (InitialLayoutInfo[keyCode] != null ) return
+        InitialLayoutInfo[keyCode] = key.visibleBounds
+    }
+
     fun putVisibleBounds(key: TextKey): Unit {
         val keyCode = key.computedData.code
-        val visibleBounds = key.visibleBounds
-        InitialKeyLayoutValue[keyCode] = visibleBounds
+        if (97 <= keyCode && keyCode <= 122 ) {
+            val visibleBounds = key.visibleBounds
+            InitialLayoutInfo[keyCode] = visibleBounds
+        }
     }
 
     fun getHistory(keyCode: Int): List<Coordinate>? {
@@ -39,8 +64,11 @@ object KeyHistoryManager {
     }
 
     fun getVisibleBounds(key: TextKey): FlorisRect? {
-        val keyCode = key.computedData.code
-        return InitialKeyLayoutValue[keyCode]
+        var keyCode = key.computedData.code
+        if (keyCode in 65..90) {
+            keyCode += 32
+        }
+        return InitialLayoutInfo[keyCode]
     }
 
     fun clearHistory(keyCode: Int) {
@@ -96,9 +124,7 @@ object KeyHistoryManager {
         }
     }
 
-    /**
-     * Dev Only : make a jason file that contains results of deep learning
-     */
+    /* Dev Only : make a jason file that contains results of deep learning */
     fun LogJsonResults(): Unit {
         val gson = Gson()
         val result: String = gson.toJson(keyHistoryData)

@@ -16,6 +16,8 @@
 
 package dev.patrickgold.florisboard.ime.text.keyboard
 
+import android.util.Log
+import dev.patrickgold.florisboard.app.tunaKeyboard.CustomFactor
 import dev.patrickgold.florisboard.ime.keyboard.Key
 import dev.patrickgold.florisboard.ime.keyboard.Keyboard
 import dev.patrickgold.florisboard.ime.keyboard.KeyboardMode
@@ -50,7 +52,7 @@ class TextKeyboard(
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
-        hasPreset: Boolean,
+        hasPredict: Boolean,
     ) {
         if (arrangement.isEmpty()) return
         val desiredTouchBounds = desiredKey.touchBounds
@@ -72,14 +74,18 @@ class TextKeyboard(
 
             val frequencyCoordinates = getFrequencyCoordinates()
             for (key in row) {
-                if (hasPreset) {
-                    val keycode = key.computedData.code
+                if (hasPredict) {
+                    var keycode = key.computedData.code
+                    if (keycode in 65..90) {
+                        keycode += 32
+                    }
                     val frequentTouchCoordinates = frequencyCoordinates.get(keycode)?.get(0)
-
                     if (frequentTouchCoordinates != null) {
                         val customValue = calculateNewWidthFactor(key, frequentTouchCoordinates)
                         if (customValue != null) {
                                 key.flayWidthFactor = customValue
+                        } else {
+                            key.flayShrink = 1.0f
                         }
                     }
                 }

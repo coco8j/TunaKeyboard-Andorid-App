@@ -1,5 +1,6 @@
 package dev.patrickgold.florisboard.app.tunaKeyboard
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import dev.patrickgold.florisboard.app.LocalNavController
 import dev.patrickgold.florisboard.app.Routes
 import dev.patrickgold.florisboard.app.florisPreferenceModel
+import dev.patrickgold.florisboard.app.tunaKeyboard.KeyHistoryManager.initializeLayoutInfo
 import dev.patrickgold.florisboard.ime.text.key.KeyCode
 import dev.patrickgold.florisboard.ime.text.keyboard.TextKeyboard
 import dev.patrickgold.florisboard.keyboardManager
@@ -88,6 +91,7 @@ fun FittingScreen() = FlorisScreen {
 
     val targetString by remember { mutableStateOf(TestString()) }
     var targetCharacter by remember { mutableStateOf<TestCharacter>(TestCharacter("BEFORE_TEST")) }
+    var isIncorrect by remember { mutableStateOf(false) }
 
     content {
         Column(
@@ -148,7 +152,7 @@ fun FittingScreen() = FlorisScreen {
                         text = "테스트 시작하기"
                     )
                 } else {
-                    Spacer(modifier = Modifier.size(30.dp))
+                    Spacer(modifier = Modifier.size(10.dp))
                 Box(
                     modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(10.dp)
                         .border(1.dp, Color.Black, RoundedCornerShape(10.dp)),
@@ -167,6 +171,25 @@ fun FittingScreen() = FlorisScreen {
                         }
                     }
                 }
+                    if (isIncorrect) {
+                        Log.d("checkValue", "2 ${targetCharacter.text.length}")
+                        Text(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                            text = when {
+                                key == null -> " "
+                                targetCharacter.text.length < 2 -> {
+                                    if (targetCharacter.text == " ") {
+                                        "스페이스바를 입력해 주세요."
+                                    } else {
+                                        "${targetCharacter.text}를 입력해 주세요."
+                                    }
+                                }
+                                else -> " "
+                            },
+                            color = Color.Red,
+                            fontSize = 15.sp
+                        )
+                    }
                 Text(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                     text = "혹시 키보드 입력이 되지 않나요?",
@@ -184,20 +207,28 @@ fun FittingScreen() = FlorisScreen {
                             // TODO: 머신러닝에 데이터 전달하여 학습시키기,
                             navController.navigate(Routes.TunaKeyboard.Home)
                             CustomFactor.updateAllFlayData()
-                            prefs.deepLearning.hasPreset.set(true)
+                            prefs.deepLearning.hasPredict.set(true)
                                   },
-                        text = "홈으로"
+                        text = "테스트 완료"
                     )
                 } else {
                     if (key != null) {
+                        /* 테스트 키 데이터 수집 구간 */
+                        initializeLayoutInfo(key)
                         KeyHistoryManager.addToHistoryAverageValue(key!!, Coordinate(touchX, touchY))
                         KeyHistoryManager.putVisibleBounds(key!!)
 
-                        if (targetCharacter.text == key!!.label ||
-                            (targetCharacter.text == " " && key!!.computedData.code == KeyCode.SPACE)) {
+                        if (targetCharacter.text == key?.label ||
+                            (targetCharacter.text == " " && key?.computedData?.code == KeyCode.SPACE)) {
                             targetCharacter.correct()
                             targetCharacter = targetString.next()
+
+                            if (isIncorrect) isIncorrect = false
                             key = null
+                        }
+
+                        if (targetCharacter.text != key?.label && !isIncorrect) {
+                            isIncorrect = true
                         }
                     }
                 }

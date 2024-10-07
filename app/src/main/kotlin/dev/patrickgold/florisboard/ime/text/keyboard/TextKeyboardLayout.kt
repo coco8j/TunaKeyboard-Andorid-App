@@ -18,6 +18,7 @@ package dev.patrickgold.florisboard.ime.text.keyboard
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
 import androidx.compose.foundation.border
@@ -224,10 +225,10 @@ fun TextKeyboardLayout(
         val keyMarginV by prefs.keyboard.keySpacingVertical.observeAsTransformingState { it.dp.toPx() }
         val customFlayValue by prefs.customFlayValues.customFlayWidthFactor.observeAsTransformingState { it }
 
-        val hasPreset by prefs.deepLearning.hasPreset.observeAsTransformingState { it }
+        val hasPredict by prefs.deepLearning.hasPredict.observeAsTransformingState { it }
         updateFrequencyCoordinates(context)
 
-        LaunchedEffect(customFlayValue, hasPreset) {
+        LaunchedEffect(customFlayValue) {
             /* This Trigger recompose keyboard layout */
         }
 
@@ -255,7 +256,7 @@ fun TextKeyboardLayout(
         }
 
         desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard, hasPreset)
+        keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, !isSmartbarKeyboard, hasPredict)
 
         val fontSizeMultiplier = prefs.keyboard.fontSizeMultiplier()
         val popupUiController = rememberPopupUiController(
@@ -628,10 +629,9 @@ private class TextKeyboardLayoutController(
             }
         }
     }
-
+// TODO: 터치 이벤트 함수(터치 이벤트로 좌표 지속수집 로직 추가)
     private fun onTouchDownInternal(event: MotionEvent, pointer: TouchPointer) {
         flogDebug(LogTopic.TEXT_KEYBOARD_VIEW) { "pointer=$pointer" }
-
         val key = keyboard.getKeyForPos(event.getX(pointer.index), event.getY(pointer.index))
         if (key != null && key.isEnabled) {
             if(keyboard.mode == KeyboardMode.CHARACTERS && key.label != null) {

@@ -14,8 +14,6 @@ import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-//data class tempCustomFlayPrefs(data: <MutableMap<Int, Coordinate>>) :MutableMap<Int, Coordinate>
-
 //K-Nearest Neighbors (KNN) 모델을 통한 오타 감지
 // TODO: 각 키의 센터값을 기준으로 판단할 것. 가로와 세로 길이의 차이가 있기 때문에 세로가 가로보다 넓은 오차 허용범위를 가져야함
 fun detectTypo(predicted: Coordinate, actual: Coordinate): Boolean {
@@ -27,7 +25,9 @@ fun detectTypo(predicted: Coordinate, actual: Coordinate): Boolean {
     return distance > threshold
 }
 
+// 나온 예측 결과를 바탕으로 widthfactor 배율을 계산하는 로직
 fun calculateNewWidthFactor(key: TextKey, commonTouchCoordinate: Coordinate): Float? {
+    // 중심점을 찾기위해 셋팅되어있는 기본 레이아웃의 보이는 범위를 찾아봄.
     val visibleBounds = KeyHistoryManager.getVisibleBounds(key)
     if (visibleBounds == null) return null
 
@@ -35,7 +35,14 @@ fun calculateNewWidthFactor(key: TextKey, commonTouchCoordinate: Coordinate): Fl
     val keyRight = visibleBounds.right
     if (keyLeft < 0 || keyRight < 0) return null
 
-    val keycode = key.computedData.code
+    var keycode = key.computedData.code
+    /*
+    영어 대소문자는 소문자 기준으로 처리
+     */
+    if (keycode in 65..90) {
+        keycode += 32
+    }
+
     val cachedFlayWidth = CustomFactor.getFlayWidth(keycode)
     if (cachedFlayWidth != null) {
         return cachedFlayWidth
@@ -58,6 +65,8 @@ fun calculateNewWidthFactor(key: TextKey, commonTouchCoordinate: Coordinate): Fl
     }
 }
 
+
+// TODO: json 학습 이후 새로운 좌표에 대한 예측값으로 대체
 fun updateFrequencyCoordinates(context: Context): Unit {
     val prefs by florisPreferenceModel()
     val frequencyCoordinates = prefs.touchedKey.frequencyCoordinates

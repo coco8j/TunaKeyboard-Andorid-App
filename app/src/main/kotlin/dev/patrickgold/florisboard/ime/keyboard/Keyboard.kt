@@ -59,7 +59,7 @@ abstract class Keyboard {
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
-        hasPreset: Boolean,
+        hasPredict: Boolean,
     )
 }
 
