@@ -1,20 +1,21 @@
+# Tunakeyboard
+
 <p align="center">
-            <img width=40% alt="Tuna_keyboard_logo" src="https://github.com/user-attachments/assets/f7f2b760-0556-4df6-b3fb-245e0930b5cd">
+            <img width=50% alt="Tuna_keyboard_logo" src="https://github.com/user-attachments/assets/f7f2b760-0556-4df6-b3fb-245e0930b5cd">
 </p>
+<div align="center">
 
-# Tunakeyboard 소개
+**“Tune-a-Keyboard”** 키보드를 조율하세요!
+<br>사용자 입력패턴을 학습하여 맞춤형 레이아웃을 제공하는 안드로이드 전용 커스텀 키보드 어플리케이션 입니다.
 
-> **“Tune-a-Keyboard”** 키보드를 조율하세요!
->
-> 사용자 입력패턴을 학습하여 맞춤형 레이아웃을 제공하는 안드로이드전용 커스텀 키보드 어플리케이션 입니다.
-
-<br>
-
-# 기획 의도
+<p align="center">*</p>
 
 스마트폰 기종 변경 시 특정 영역에서 오타 발생 빈도가 증가하는 현상을 경험했습니다. 스마트폰 화면의 다양화 및 대형화로 인해 이러한 문제가 더욱 두드러졌습니다. 최신 기종에 내장된 보완 기능이 존재하나, 이는 완전한 해결책이 되지 못했습니다.
 
 이러한 일상적인 불편을 해소하고자 직접 개발하기로 결정했습니다.
+
+</div>
+<br>
 
 # 목차
 
@@ -67,15 +68,21 @@
 
 # UI 미리보기
 
-- [**시연 영상 🎥**](https://youtu.be/Ymns_j6Ag-k)
+### [**시연 영상 보러가기 🎥**](https://youtu.be/Ymns_j6Ag-k)
 
-  ![tuna_keyboard_screens(1010)](https://github.com/user-attachments/assets/4c3ed9c7-45b7-4e1e-a3a8-86de359f0c31)
+![tuna_keyboard_screens(1010)](https://github.com/user-attachments/assets/4c3ed9c7-45b7-4e1e-a3a8-86de359f0c31)
 
+<p align="center">
   좌측에서부터 홈 화면, 테스트 안내, 테스트 화면, 개별 키 커스터마이징 화면 입니다.
+<p>
 
-  어플리케이션에서는 키보드 셋팅을 위한 설정화면을 제공합니다. 설정은 초기 설정을 위한 ‘테스트’ 와 이후 사용자가 직접 키 레이아웃을 조절할 수 있는 ‘커스터마이징’ 이 있습니다.
+### 어플리케이션 제공 기능
 
-  추가로 키보드는 light / dark 테마가 존재합니다.
+이 어플리케이션은 사용자가 키보드를 개인화할 수 있는 설정 화면을 제공합니다. 설정은 두 가지 주요 기능으로 나뉩니다:
+
+1. **테스트**: 사용자의 타이핑 패턴을 분석하여 맞춤형 키보드 레이아웃을 제공하는 초기 설정 단계입니다. 사용자의 입력패턴의 기본 정보를 수집합니다. 이 테스터를 통해 개인화된 키보드를 사용할 수 있습니다.
+
+2. **커스터마이징**: 테스트 후 사용자가 직접 키 크기, 간격, 위치를 세부적으로 조절할 수 있는 기능입니다. 이를 통해 사용자는 빠르게 커스텀 가능한 키보드를 제공받을 수 있습니다.
 
 <br>
 
@@ -99,15 +106,15 @@
 
 여기에는 **3가지 문제점**이 있었습니다.
 
-- React Native AutoLinking 버그가 실시간으로 발생하다.
+- **React Native AutoLinking 버그가 실시간으로 발생하다.**
 
   POC 를 진행하던 당시 리액트 네이티브는 0.75.2 버전으로 리액트 네이티브에서 안드로이드 프로젝트를 찾지 못하는 이슈가 있었습니다. 리액트 네이티브와 안드로이드가 연결이 되지 못하는 치명적인 사태가 발생했습니다. 0.75.3 버전에 급하게 패치 되었지만 제가 POC 를 진행하던 기간에는 해결이 되지 못했습니다. ( [이슈로그1](https://github.com/facebook/react-native/issues/46134), [이슈로그2](https://github.com/facebook/react-native/issues/46593) )
 
-- 키보드는 다양한 언어와 형태의 모드들을 지원해야한다.
+- **키보드는 다양한 언어와 형태의 모드들을 지원해야한다.**
 
   키보드는 다양한 모드(각종 언어별, 기본형, 이메일 입력형, ‘이모지’ 와 전화용 번호 키패드 등등…)가 있습니다. 커스텀 키보드는 기존 키보드를 대체하여 사용하게 되기 때문에 사용자가 사용하는 모든 경우에 전부 대응할 수 있어야 합니다. 이 가짓수는 상당했고 목표했던 개발 기간을 고려할때 적절하지 않았습니다.
 
-- `InputMethodService`가 Deprecated 되다.
+- **`InputMethodService`가 Deprecated 되다.**
     <p align="center">
        <img width="860" alt="errorMessage_deprecated" src="https://github.com/user-attachments/assets/e3caaafd-f993-44b7-b5a3-13c74c9d8282">
     </p>
@@ -317,13 +324,13 @@ X에 해당하는 값이 새로운 넓이 배율(`flayWidthFactor`)이 됩니다
     <img width=100% alt="show_before after" src="https://github.com/user-attachments/assets/28b4a8e1-0de6-4e9d-bfb7-162e04753d92">
 </p>
 <p style="display: flex; flex-direction: column; text-align: center;">
-  <span>개발자의 데이터를 기준으로 한 before & after</span>
-  <span>A와 S사이에 찍히던 좌표가 안전하게 A영역 안으로 들어오는 것을 확인할 수 있다.</span>
+  <span>A와 S사이에 찍히던 좌표가 안전하게 A영역 안으로 들어오는 것을 확인할 수 있습니다.</span>
 </p>
 
-딥러닝을 통해 터치 좌표를 분석하고, 이를 기반으로 각 키의 크기를 정밀하게 조정했습니다.
+<br>
+딥러닝을 통해 터치 좌표를 분석하고, 이를 기반으로 각 키의 크기를 조정했습니다.
 
-이러한 과정의 결과로, 이전에는 주변 키버튼 영역과 혼동될 수 있었던 터치 좌표들이 이제는 사용자가 의도한 키의 정확한 히트박스 영역 내로 안정적으로 인식됩니다. 이는 사용자의 입력 정확도를 크게 향상시키며, 오타 발생 빈도를 현저히 줄이는 효과를 가져왔습니다.
+이러한 과정의 결과로, **이전에는 주변 키버튼 영역과 혼동될 수 있었던 터치 좌표들이 이제는 사용자가 의도한 키의 정확한 히트박스 영역 내로 안정적으로 인식됩니다.** 이는 사용자의 입력 정확도를 크게 향상시키며, 오타 발생 빈도를 현저히 줄이는 효과를 가져왔습니다.
 
 또한, 이 최적화 과정은 사용자의 개인적인 터치 패턴을 지속적으로 학습하여 더욱 정교한 키보드 레이아웃을 제공합니다. 결과적으로, 사용자는 더욱 자연스럽고 편안한 타이핑 경험을 즐길 수 있게 되었습니다.
 
